@@ -1,16 +1,29 @@
 package cloud
 
+import (
+	"log"
+
+	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
+)
+
 func Setup(projectID string) {
-	println("Setting up infrastructure for cloud-task-zip-zap ...")
-	err := createPubSubTopic(projectID, "ctzz-task-queue")
-	if err == nil {
-		println("- PubSub Topic created successfully")
-	} else {
-		println(err.Error())
-	}
+	log.Print("SETTING UP infrastructure for cloud-task-zip-zap ...")
+	bailOnError(createPubSubTopic(projectID, settings.TopicNameTaskQueue), "creating task queue")
+	bailOnError(createPubSubTopic(projectID, settings.TopicNameStatusQueue), "creating status queue")
+	log.Print("SUCCESS setting up cloud-task-zip-zap cloud infra. Have fun!")
 }
 
 func Destroy(projectID string) {
-	println("Destroying infrastructure for cloud-task-zip-zap ...")
-	deletePubSubTopic(projectID, "ctzz-task-queue")
+	log.Print("DESTROYING infrastructure for cloud-task-zip-zap ...")
+	bailOnError(deletePubSubTopic(projectID, settings.TopicNameTaskQueue), "deleting task queue")
+	bailOnError(deletePubSubTopic(projectID, settings.TopicNameStatusQueue), "deleting status queue")
+	log.Print("SUCCESS destroying cloud-task-zip-zap cloud infra. Have fun!")
+}
+
+func bailOnError(err error, message string) {
+	if err == nil {
+		log.Printf("Success: %s", message)
+	} else {
+		log.Fatalf("ERROR: %s: %s", message, err.Error())
+	}
 }

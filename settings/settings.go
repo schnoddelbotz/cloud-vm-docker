@@ -34,4 +34,9 @@ const (
 	ActionWait = "wait"
 	// ActionKill
 	ActionKill = "kill"
+
+	// TopicNameTaskQueue .. tbd: option/flag
+	TopicNameTaskQueue = "ctzz-task-queue"
+	// TopicNameStatusQueue ...
+	TopicNameStatusQueue = "ctzz-status-queue"
 )

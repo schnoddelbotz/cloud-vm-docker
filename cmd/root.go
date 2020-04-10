@@ -11,8 +11,6 @@ import (
 	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
 )
 
-var cfgFile string
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "cloud-task-zip-zap",

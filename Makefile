@@ -32,7 +32,7 @@ coverage: clean
 	go tool cover -html=coverage.out
 
 deploy_gcp: $(BINARY)
-	./cloud-task-zip-zap setup
+	# ./cloud-task-zip-zap setup
 	gcloud functions deploy CloudTaskZipZap --region=europe-west1 --runtime go113 \
  		--trigger-http --allow-unauthenticated \
  		--set-env-vars=CTZZ_DATASTORE_COLLECTION=cloud-task-zip-zap-test
