@@ -10,7 +10,7 @@ import (
 var killCmd = &cobra.Command{
 	Use:   "kill",
 	Short: "Kills a ctzz-managed VM",
-	Long: `kill calls ComputeEngine API and requests instant VM deletion`,
+	Long:  `kill calls ComputeEngine API and requests instant VM deletion`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("kill called")
 	},

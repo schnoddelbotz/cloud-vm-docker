@@ -2,15 +2,12 @@ package settings
 
 // Settings configure a CLI or CloudFunction ctzz instance
 type Settings struct {
-	PrintVersion  bool
-	PrintRawJSON  bool
-	CopyClipboard bool
-	NoOutput      bool
-	RawOutput     bool
-	Provider      string
-	File          string
-	Server        string
-	Google        GoogleCloudSettings
+	NoOutput  bool
+	RawOutput bool
+	Provider  string
+	File      string
+	Server    string
+	Google    GoogleCloudSettings
 }
 
 // GoogleCloudSettings define anything Google related (project, service account, ...)
@@ -20,6 +17,17 @@ type GoogleCloudSettings struct {
 }
 
 const (
+	// FlagProject ...
+	FlagProject = "project"
+	// FlagImage
+	FlagImage = "image"
+	// FlagCommand
+	FlagCommand = "command"
+	// FlagArgs
+	FlagArgs = "args"
+	// FlagArgsFile
+	FlagArgsFile = "args-file"
+
 	// ActionSubmit
 	ActionSubmit = "submit"
 	// ActionWait

@@ -10,7 +10,7 @@ import (
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Shows status of one or more ctzz-managed tasks",
-	Long: `fetches status from FireStore, allows filtering state/progress/..., sorting`,
+	Long:  `fetches status from FireStore, allows filtering state/progress/..., sorting`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("status called")
 	},

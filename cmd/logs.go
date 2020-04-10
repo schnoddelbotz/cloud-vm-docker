@@ -10,7 +10,7 @@ import (
 var logsCmd = &cobra.Command{
 	Use:   "logs",
 	Short: "Downloads or prints VM logs",
-	Long: `download and print VM logs by task UUID`,
+	Long:  `download and print VM logs by task UUID`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("logs called")
 	},

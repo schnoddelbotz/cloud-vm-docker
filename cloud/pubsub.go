@@ -22,3 +22,8 @@ func createPubSubTopic(projectID, topicID string) error {
 	fmt.Printf("Topic created: %v\n", t)
 	return nil
 }
+
+func deletePubSubTopic(projectID, topicID string) error {
+	fmt.Printf("Deleting pubsub topic '%s' in project %s ... huh, dunno how, FXIME!\n", topicID, projectID)
+	return nil
+}

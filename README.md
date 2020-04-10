@@ -13,6 +13,12 @@ for deployment, ensure you did this once:
 gcloud auth login
 gcloud projects list
 gcloud config set project ... 
+
+# to let run ctzz locally and interact with google services, create a svc account as in
+# https://cloud.google.com/datastore/docs/reference/libraries
+
+# best in your .bashrc
+export GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/gcloud/svc-account.json
 ```
 
 example usage:
@@ -47,3 +53,8 @@ $ ctzz logs 1234-1234
 # abort a running task by deleting the VM
 $ ctzz kill 1234-1234
 ```
+
+## TODO
+
+- have some monitoring dashboard web endpoint using `status` data + google monitoring/logs links ... 
+- or update some google-hosted dashboard to add/remove machines as they come/run/go(history)
