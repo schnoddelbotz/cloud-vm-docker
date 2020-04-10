@@ -12,7 +12,7 @@ build: $(BINARY)
 	@./$(BINARY) version
 
 $(BINARY): $(GO_SOURCES)
-	go build -o $(BINARY) -ldflags='-w -s $(LDFLAGS)'
+	go build -o $(BINARY) -ldflags='-w -s $(LDFLAGS)' ./ctzz/main.go
 
 all_local: clean test build
 
