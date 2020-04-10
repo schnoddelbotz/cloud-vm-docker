@@ -27,7 +27,7 @@ func init() {
 	//}
 }
 
-// Secret handler manages secrets but also delivers web app.
+// CloudTaskZipZap handler manages secrets but also delivers web app.
 // It is deployed as single Google CloudFunction.
 func CloudTaskZipZap(w http.ResponseWriter, r *http.Request) {
 	handlers.CloudTaskZipZap(w, r) // , handle

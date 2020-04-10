@@ -19,20 +19,20 @@ type GoogleCloudSettings struct {
 const (
 	// FlagProject ...
 	FlagProject = "project"
-	// FlagImage
+	// FlagImage ...
 	FlagImage = "image"
-	// FlagCommand
+	// FlagCommand ...
 	FlagCommand = "command"
-	// FlagArgs
+	// FlagArgs ...
 	FlagArgs = "args"
-	// FlagArgsFile
+	// FlagArgsFile ...
 	FlagArgsFile = "args-file"
 
-	// ActionSubmit
+	// ActionSubmit ...
 	ActionSubmit = "submit"
-	// ActionWait
+	// ActionWait ...
 	ActionWait = "wait"
-	// ActionKill
+	// ActionKill ...
 	ActionKill = "kill"
 
 	// TopicNameTaskQueue .. tbd: option/flag

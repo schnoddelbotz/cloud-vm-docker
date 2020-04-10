@@ -6,6 +6,7 @@ import (
 	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
 )
 
+// Setup creates necessary GoogleCloud infra for ctzz operations
 func Setup(projectID string) {
 	log.Print("SETTING UP infrastructure for cloud-task-zip-zap ...")
 	bailOnError(createPubSubTopic(projectID, settings.TopicNameTaskQueue), "creating task queue")
@@ -13,6 +14,7 @@ func Setup(projectID string) {
 	log.Print("SUCCESS setting up cloud-task-zip-zap cloud infra. Have fun!")
 }
 
+// Destroy removes infra created by setup routine
 func Destroy(projectID string) {
 	log.Print("DESTROYING infrastructure for cloud-task-zip-zap ...")
 	bailOnError(deletePubSubTopic(projectID, settings.TopicNameTaskQueue), "deleting task queue")
