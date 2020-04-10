@@ -2,5 +2,6 @@ package cloud
 
 func Setup() {
 	println("Setting up infrastructure for cloud-task-zip-zap ...")
-	createPubSubTopic("ctzz-task-queue")
+	err := createPubSubTopic("hacker-playground-254920", "ctzz-task-queue")
+	println(err.Error())
 }
