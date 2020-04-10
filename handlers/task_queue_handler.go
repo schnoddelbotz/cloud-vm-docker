@@ -10,7 +10,6 @@ type PubSubMessage struct {
 	Data []byte `json:"data"`
 }
 
-
 // HelloPubSub consumes a Pub/Sub message.
 func CloudTaskZipZapProcessor(ctx context.Context, m PubSubMessage) error {
 	name := string(m.Data)

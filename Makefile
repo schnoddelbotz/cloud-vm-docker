@@ -37,7 +37,7 @@ deploy_gcp: $(BINARY)
  		--trigger-http --allow-unauthenticated \
  		--set-env-vars=CTZZ_DATASTORE_COLLECTION=cloud-task-zip-zap-test
 	gcloud functions deploy CloudTaskZipZapProcessor --region=europe-west1 --runtime go113 \
-     		--trigger-topic=ctzz-task-queue \
+     		--trigger-topic=ctzz-task-queue --allow-unauthenticated \
      		--set-env-vars=CTZZ_TOPIC=ctzz-task-queue
 
 docker_image:
