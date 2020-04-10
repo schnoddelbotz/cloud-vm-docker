@@ -1,7 +1,22 @@
 package handlers
 
-import "net/http"
+import (
+	"context"
+	"log"
+)
 
-func CloudTaskZipZapProcessor(w http.ResponseWriter, r *http.Request) {
+// PubSubMessage is the payload of a Pub/Sub event.
+type PubSubMessage struct {
+	Data []byte `json:"data"`
+}
 
+
+// HelloPubSub consumes a Pub/Sub message.
+func CloudTaskZipZapProcessor(ctx context.Context, m PubSubMessage) error {
+	name := string(m.Data)
+	if name == "" {
+		name = "World"
+	}
+	log.Printf("Hello, %s!", name)
+	return nil
 }

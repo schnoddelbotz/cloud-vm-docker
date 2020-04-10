@@ -31,10 +31,14 @@ coverage: clean
 	PROVIDER=MEMORY go test -coverprofile=coverage.out -coverpkg=./... -ldflags='-w -s $(LDFLAGS)' ./...
 	go tool cover -html=coverage.out
 
-deploy_gcp:
-	gcloud functions deploy $(BINARY) --region=europe-west1 --runtime go113 \
+deploy_gcp: $(BINARY)
+	./cloud-task-zip-zap setup
+	gcloud functions deploy CloudTaskZipZap --region=europe-west1 --runtime go113 \
  		--trigger-http --allow-unauthenticated \
  		--set-env-vars=CTZZ_DATASTORE_COLLECTION=cloud-task-zip-zap-test
+	gcloud functions deploy CloudTaskZipZapProcessor --region=europe-west1 --runtime go113 \
+     		--trigger-topic=ctzz-task-queue \
+     		--set-env-vars=CTZZ_TOPIC=ctzz-task-queue
 
 docker_image:
 	docker build -f Docker/cloud-task-zip-zap.Dockerfile -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .

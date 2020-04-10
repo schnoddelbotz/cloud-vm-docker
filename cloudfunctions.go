@@ -1,6 +1,7 @@
 package cloudfunctions
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -32,8 +33,7 @@ func CloudTaskZipZap(w http.ResponseWriter, r *http.Request) {
 	handlers.CloudTaskZipZap(w, r) // , handle
 }
 
-// Secret handler manages secrets but also delivers web app.
-// It is deployed as single Google CloudFunction.
-func CloudTaskZipZapProcessor(w http.ResponseWriter, r *http.Request) {
-	handlers.CloudTaskZipZapProcessor(w, r) // , handle
+// CloudTaskZipZapProcessor consumes a Pub/Sub message.
+func CloudTaskZipZapProcessor(ctx context.Context, m handlers.PubSubMessage) error {
+	return handlers.CloudTaskZipZapProcessor(ctx, m)
 }
