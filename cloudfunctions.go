@@ -2,6 +2,7 @@ package cloudfunctions
 
 import (
 	"context"
+	"github.com/schnoddelbotz/cloud-task-zip-zap/cloud"
 	"log"
 	"net/http"
 
@@ -34,6 +35,6 @@ func CloudTaskZipZap(w http.ResponseWriter, r *http.Request) {
 }
 
 // CloudTaskZipZapProcessor consumes a Pub/Sub message.
-func CloudTaskZipZapProcessor(ctx context.Context, m handlers.PubSubMessage) error {
+func CloudTaskZipZapProcessor(ctx context.Context, m cloud.PubSubMessage) error {
 	return handlers.CloudTaskZipZapProcessor(ctx, m)
 }

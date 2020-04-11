@@ -9,10 +9,12 @@ GO_SOURCES := */*.go */*/*.go */*/*/*.go
 
 
 build: $(BINARY)
+	# running: $(BINARY) version
 	@./$(BINARY) version
 
 $(BINARY): $(GO_SOURCES)
-	go build -o $(BINARY) -ldflags='-w -s $(LDFLAGS)' ./ctzz/main.go
+	# building cloud-task-zip-zap
+	go build -v -o $(BINARY) -ldflags='-w -s $(LDFLAGS)' ./ctzz/main.go
 
 all_local: clean test build
 

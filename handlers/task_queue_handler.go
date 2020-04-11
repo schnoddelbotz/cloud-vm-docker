@@ -3,19 +3,14 @@ package handlers
 import (
 	"context"
 	"log"
+
+	"github.com/schnoddelbotz/cloud-task-zip-zap/cloud"
 )
 
-// PubSubMessage is the payload of a Pub/Sub event.
-type PubSubMessage struct {
-	Data []byte `json:"data"`
-}
-
 // CloudTaskZipZapProcessor consumes a Pub/Sub message.
-func CloudTaskZipZapProcessor(ctx context.Context, m PubSubMessage) error {
-	name := string(m.Data)
-	if name == "" {
-		name = "World"
-	}
-	log.Printf("Hello, %s!", name)
+func CloudTaskZipZapProcessor(ctx context.Context, m cloud.PubSubMessage) error {
+	log.Printf("Request ctx: %v", ctx)
+	task := cloud.NewCloudTaskFromBytes(m.Data)
+	log.Printf("TASK: %v!", task)
 	return nil
 }
