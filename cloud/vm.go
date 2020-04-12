@@ -23,9 +23,7 @@ func CreateVM(projectID, zone, vmType, instanceName string) {
 	// https://cloud.google.com/compute/docs/regions-zones#available
 	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s",zone, vmType )
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + projectID
-	imageURL := "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/debian-7-wheezy-v20140606"
 	rb := &compute.Instance{
-		// TODO: Add desired fields of the request body.
 		Name: instanceName,
 		MachineType: machineTypeFQDN,
 		Disks: []*compute.AttachedDisk{
@@ -35,7 +33,7 @@ func CreateVM(projectID, zone, vmType, instanceName string) {
 				Type:       "PERSISTENT",
 				InitializeParams: &compute.AttachedDiskInitializeParams{
 					DiskName:    "my-root-pd",
-					SourceImage: imageURL,
+					SourceImage: getCOSImageLink(),
 				},
 			},
 		},
@@ -66,11 +64,24 @@ func CreateVM(projectID, zone, vmType, instanceName string) {
 		log.Fatal(err)
 	}
 
+	// todo: if wait, then
+	// https://github.com/googleapis/google-api-go-client/blob/master/examples/operation_progress.go
+
 	// TODO: Change code below to process the `resp` object:
 	fmt.Printf("OK RESPONSE:\n%#v\n", resp)
 }
 
-func getMachineTypeFQDN(shortTypeName string) string {
-	//machine_type = f'zones/{zone}/machineTypes/{machine_type_shortname}'
-	return "x"
+func getCOSImageLink() string {
+	ctx := context.Background()
+	computeService, err := compute.NewService(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	image, err := computeService.Images.GetFromFamily("cos-cloud", "cos-stable").Do()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Selected VM Disk Image: %s (%s)", image.Name, image.Description)
+	log.Printf("VM Disk Image SelfLink: %v", image.SelfLink)
+	return image.SelfLink
 }

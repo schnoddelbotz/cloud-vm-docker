@@ -17,7 +17,6 @@ var runCmd = &cobra.Command{
 	Long:  `run dockerized command on ComputeEngine VM
 Despite Usage message below, no ctzz [flags] are supported after [COMMAND] [ARG...]`,
 	Args: cobra.MinimumNArgs(1),
-
 	RunE: func(cmd *cobra.Command, args []string) error {
 		image := args[0]
 		var command []string

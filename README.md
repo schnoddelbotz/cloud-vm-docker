@@ -82,3 +82,4 @@ make gcp_deploy
 - deployment: let user disable HTTP endpoint if not needed
 - list which commands work as 100% "drop-in" replacement for docker commands -- goal: as-much-as-possible
 - coool! can I use this for interactive containers as well? no, not yet, maybe never. you can ssh to vm though.
+- allow alternate VM disk images? custom cloud_init? custom network? labels? svcAccount (or roles to add to default)?
