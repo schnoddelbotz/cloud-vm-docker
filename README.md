@@ -28,7 +28,7 @@ $ ctzz run \
 # and will not print logs. Of course, they're accessible +/- as if it was plain Docker.
 $ ctzz ps
 VM_ID       IMAGE                   COMMAND                                  CREATED        STATUS
-fb0f979473  busybox                 echo foo                                 5 min ago      CREATED
+fb0f979473  busybox                 echo foo                                 5 min ago      created
 
 # Containers running on VMs will forward logs to StackDriver. To read those logs, like in Docker, do:
 $ ctzz logs fb0f979473

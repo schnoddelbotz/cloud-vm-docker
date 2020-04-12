@@ -34,7 +34,7 @@ func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 	taskKey := datastore.NameKey(settings.FireStoreCollection, name, nil)
 	// Creates a Task instance.
 	doc := Task{
-		Status:        "CREATED",
+		Status:        TaskStatusCreated,
 		TaskArguments: taskArguments,
 		VMID:          name, // dup! also doc title now ...
 		CreatedAt:     time.Now(),
