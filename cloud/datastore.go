@@ -73,10 +73,10 @@ func ListTasks(projectID string) {
 	}
 
 	// todo: dynamically check/set required field width -- and/or add flag: disable shortening below...
-	fmt.Printf("VM_ID       IMAGE                   COMMAND                                  CREATED        STATUS\n")
-	for _, doc := range(docList) {
+	fmt.Printf("VM_ID        IMAGE                   COMMAND                                  CREATED        STATUS\n")
+	for _, doc := range docList {
 		cmd := strings.Join(doc.TaskArguments.Command, " ")
-		fmt.Printf("%-11s %-23s %-40s %-14s %s\n",
+		fmt.Printf("%-12s %-23s %-40s %-14s %s\n",
 			doc.VMID, getImageNameWithoutRegistryAndTag(doc.TaskArguments.Image),
 			shortenToMaxLength(cmd, 38), "5 min ago", doc.Status)
 	}
@@ -97,7 +97,7 @@ func generateVMID() string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return fmt.Sprintf("%x", b[0:5])
+	return fmt.Sprintf("t%x", b[0:5])
 }
 
 func generateShutdownToken() string {
@@ -117,12 +117,12 @@ func getImageNameWithoutRegistryAndTag(imageFQDN string) string {
 
 func shortenToMaxLength(str string, max int) string {
 	// shorten String to maximum length. If cut, precede with ellipsis.
-	from := len(str)-max
+	from := len(str) - max
 	if from < 0 {
 		from = 0
 	}
 	result := str[from:len(str)]
-	if len(str)>max && max>3 {
+	if len(str) > max && max > 3 {
 		result = "…" + result[1:]
 	}
 	return result

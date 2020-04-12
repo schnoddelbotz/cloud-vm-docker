@@ -14,19 +14,36 @@ import (
 
 // CreateVM spins up a ComputeEngine VM instance ...
 // fixme: this should receive a task ...
-func CreateVM(projectID, zone, vmType, instanceName string) {
-	log.Printf("Creating VM named %s of type %s in zone %s for project %s", instanceName, vmType, zone, projectID)
+//func CreateVM(projectID, zone, vmType, instanceName string) {
+func CreateVM(projectID, zone string, task Task) (string, error) {
+	log.Printf("Creating VM named %s of type %s in zone %s for project %s", task.VMID, task.TaskArguments.VMType, zone, projectID)
 	ctx := context.Background()
 	computeService, err := compute.NewService(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	// https://cloud.google.com/compute/docs/regions-zones#available
-	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s",zone, vmType )
+	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s", zone, task.TaskArguments.VMType)
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + projectID
-	rb := &compute.Instance{
-		Name: instanceName,
+	rb := buildInstanceInsertionRequest(task.VMID, machineTypeFQDN, prefix)
+	resp, err := computeService.Instances.Insert(projectID, zone, rb).Context(ctx).Do()
+	if err != nil {
+		return "", err
+	}
+
+	// todo: if wait, then
+	// https://github.com/googleapis/google-api-go-client/blob/master/examples/operation_progress.go
+
+	// TODO: Change code below to process the `resp` object:
+	// FIXME : OR JUST RETURN IT! or just SelfLink to operation
+	// fmt.Printf("OK RESPONSE:\n%#v\n", resp)
+	return resp.SelfLink, nil
+}
+
+func buildInstanceInsertionRequest(instanceName string, machineTypeFQDN string, prefix string) *compute.Instance {
+	return &compute.Instance{
+		Name:        instanceName,
 		MachineType: machineTypeFQDN,
 		Disks: []*compute.AttachedDisk{
 			{
@@ -60,17 +77,6 @@ func CreateVM(projectID, zone, vmType, instanceName string) {
 			},
 		},
 	}
-
-	resp, err := computeService.Instances.Insert(projectID, zone, rb).Context(ctx).Do()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// todo: if wait, then
-	// https://github.com/googleapis/google-api-go-client/blob/master/examples/operation_progress.go
-
-	// TODO: Change code below to process the `resp` object:
-	fmt.Printf("OK RESPONSE:\n%#v\n", resp)
 }
 
 func getCOSImageLink() string {

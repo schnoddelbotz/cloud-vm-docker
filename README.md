@@ -27,17 +27,17 @@ $ ctzz run \
 # Like `docker run -d`, the above command will not wait for task to complete
 # and will not print logs. Of course, they're accessible +/- as if it was plain Docker.
 $ ctzz ps
-VM_ID        IMAGE               COMMAND                  CREATED             STATUS
-6af7db3a     eu.gcr.io.my-pro... sleep 3600               15 min ago          running
+VM_ID       IMAGE                   COMMAND                                  CREATED        STATUS
+fb0f979473  busybox                 echo foo                                 5 min ago      CREATED
 
 # Containers running on VMs will forward logs to StackDriver. To read those logs, like in Docker, do:
-$ ctzz logs 6af7db3a
+$ ctzz logs fb0f979473
 2020/04/12 10:20:05 started
 
 # Compute tasks are best run in forground (e.g. in Airflow DAGs), as this will implicitly wait
 # for container command completion. 
 # But if you decided  to run a task 'detached' (-d), then you can wait for completion:
-$ ctzz wait 6af7db3a
+$ ctzz wait fb0f979473
 2020/04/12 10:30:15 started waiting for completion of task 6af7db3a
 2020/04/12 10:35:10 task 6af7db3a completed - setting wait's exit status to the task's one: EXIT_STATUS_OK
 ```

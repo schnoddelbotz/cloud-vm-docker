@@ -14,21 +14,21 @@ import (
 var runCmd = &cobra.Command{
 	Use:   "run IMAGE [COMMAND] [ARG...]",
 	Short: "run a dockerized command to be executed on a ComputeEngine VM",
-	Long:  `run dockerized command on ComputeEngine VM
+	Long: `run dockerized command on ComputeEngine VM
 Despite Usage message below, no ctzz [flags] are supported after [COMMAND] [ARG...]`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		image := args[0]
 		var command []string
-		if len(args)>1 {
+		if len(args) > 1 {
 			command = args[1:]
 		}
 
-		task := cloud.NewCloudTaskArgsFromArgs(image,
+		taskArguments := cloud.NewCloudTaskArgsFromArgs(image,
 			command,
 			viper.GetString(settings.FlagEntryPoint),
 			viper.GetString(settings.FlagVMType))
-		err := cloud.PubSubPushTask(task, viper.GetString(settings.FlagProject), settings.TopicNameTaskQueue)
+		err := cloud.PubSubPushTask(taskArguments, viper.GetString(settings.FlagProject), settings.TopicNameTaskQueue)
 		if err != nil {
 			return fmt.Errorf("ERROR running TaskArguments: %v", err)
 		}

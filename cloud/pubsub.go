@@ -58,7 +58,6 @@ func PubSubPushTask(task *TaskArguments, projectID, topicID string) error {
 	}
 	data, _ := json.Marshal(task)
 	m := pubsub.Message{
-		ID:          "1234",
 		Data:        data,
 		Attributes:  nil,
 		PublishTime: time.Time{},
