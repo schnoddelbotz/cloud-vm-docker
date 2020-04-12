@@ -2,6 +2,7 @@ package cloud
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"log"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
 )
 
+// Task describes structure of our FireStore/DataStore documents
 type Task struct {
 	TaskArguments TaskArguments
 	Status        string
@@ -26,7 +28,7 @@ type Task struct {
 // StoreTask saves a new task in FireStore DB.
 // It is called by PubSubFn for each message received.
 // Note that just storing a task does nothing; the pubsubtrigger is supposed to spin up the VM for the Task.
-func StoreTask(projectID string, taskArguments TaskArguments) {
+func StoreTask(projectID string, taskArguments TaskArguments) Task {
 	ctx := context.Background()
 	client, err := datastore.NewClient(ctx, projectID)
 	if err != nil {
@@ -35,15 +37,15 @@ func StoreTask(projectID string, taskArguments TaskArguments) {
 
 	// Sets the name/ID for the new entity. // DocumentName / ID
 	name := generateTaskName(taskArguments)
-
 	// Creates a Key instance.
 	taskKey := datastore.NameKey(settings.FireStoreCollection, name, nil)
 	// Creates a Task instance.
 	doc := Task{
 		Status:        "CREATED",
 		TaskArguments: taskArguments,
-		VMID:          "ICH-1000",
+		VMID:          generateVMID(taskArguments),
 		CreatedAt:     time.Now(),
+		ShutdownToken: generateShutdownToken(),
 	}
 
 	// Saves the new entity.
@@ -51,9 +53,11 @@ func StoreTask(projectID string, taskArguments TaskArguments) {
 		log.Fatalf("Failed to save doc: %v", err)
 	}
 
-	fmt.Printf("Saved %v: %v\n", taskKey, doc.Status)
+	log.Printf("Saved %v: %v\n", taskKey, doc.Status)
+	return doc
 }
 
+// ListTasks provides 'docker ps' functionality by querying DataStore
 func ListTasks(projectID string) {
 	// log.Printf("Listing tasks in project %s on collection %s", projectID, settings.FireStoreCollection)
 	ctx := context.Background()
@@ -79,7 +83,31 @@ func ListTasks(projectID string) {
 }
 
 func generateTaskName(task TaskArguments) string {
+	// ... as used as DataStore ID
 	now := time.Now()
 	datePart := now.Format("2006-01-02_15:04:05")
 	return fmt.Sprintf("%s_%s", datePart, task.Image)
+}
+
+func generateVMID(arguments TaskArguments) string {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		log.Fatal(err)
+	}
+	uuid := fmt.Sprintf("%x", b[0:4])
+	// now, eu.gcr.io/my-project-cafebabe/my-image:latest --> my-image
+	imageParts := strings.Split(arguments.Image, "/")
+	imageNameWithTag := imageParts[len(imageParts)-1]
+	imageName := strings.Split(imageNameWithTag, ":")[0]
+	return fmt.Sprintf("%s-%s", imageName, uuid)
+}
+
+func generateShutdownToken() string {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }

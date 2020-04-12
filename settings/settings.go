@@ -37,7 +37,7 @@ const (
 	// ActionKill ...
 	ActionKill = "kill"
 
-	// FireStoreCollection
+	// FireStoreCollection is the name of our firestore collection
 	FireStoreCollection = "ctzz-task"
 
 	// TopicNameTaskQueue .. tbd: option/flag
