@@ -43,7 +43,7 @@ func StoreTask(projectID string, taskArguments TaskArguments) Task {
 	doc := Task{
 		Status:        "CREATED",
 		TaskArguments: taskArguments,
-		VMID:          generateVMID(taskArguments),
+		VMID:          generateVMID(),
 		CreatedAt:     time.Now(),
 		ShutdownToken: generateShutdownToken(),
 	}
@@ -73,10 +73,11 @@ func ListTasks(projectID string) {
 	}
 
 	// todo: dynamically check/set required field width
-	fmt.Printf("VM_ID          IMAGE                  COMMAND                        CREATED        STATUS\n")
+	fmt.Printf("VM_ID           IMAGE                  COMMAND                        CREATED        STATUS\n")
 	for _, doc := range(docList) {
 		cmd := strings.Join(doc.TaskArguments.Command, " ")
-		fmt.Printf("%-14s %-22s %-30s %-14s %s\n", doc.VMID, doc.TaskArguments.Image, cmd, "5 min ago", doc.Status)
+		fmt.Printf("%-12s %-22s %-30s %-14s %s\n",
+			doc.VMID, getImageNameWithoutRegistryAndTag(doc.TaskArguments.Image), cmd, "5 min ago", doc.Status)
 	}
 
 	// log.Printf("Got %d tasks as response, showed X, 3 running, 2 deleted.", len(something = client.GetAll retval))
@@ -89,18 +90,13 @@ func generateTaskName(task TaskArguments) string {
 	return fmt.Sprintf("%s_%s", datePart, task.Image)
 }
 
-func generateVMID(arguments TaskArguments) string {
+func generateVMID() string {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
 	if err != nil {
 		log.Fatal(err)
 	}
-	uuid := fmt.Sprintf("%x", b[0:4])
-	// now, eu.gcr.io/my-project-cafebabe/my-image:latest --> my-image
-	imageParts := strings.Split(arguments.Image, "/")
-	imageNameWithTag := imageParts[len(imageParts)-1]
-	imageName := strings.Split(imageNameWithTag, ":")[0]
-	return fmt.Sprintf("%s-%s", imageName, uuid)
+	return fmt.Sprintf("%x", b[0:5])
 }
 
 func generateShutdownToken() string {
@@ -110,4 +106,10 @@ func generateShutdownToken() string {
 		log.Fatal(err)
 	}
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+}
+
+func getImageNameWithoutRegistryAndTag(imageFQDN string) string {
+	imageParts := strings.Split(imageFQDN, "/")
+	imageNameWithTag := imageParts[len(imageParts)-1]
+	return strings.Split(imageNameWithTag, ":")[0]
 }
