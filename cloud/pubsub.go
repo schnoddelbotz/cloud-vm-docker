@@ -17,17 +17,17 @@ type PubSubMessage struct {
 	Data []byte `json:"data"`
 }
 
-// Task describes a Docker command to run on a specific type of VM
-type Task struct {
+// TaskArguments describes a Docker command to run on a specific type of VM
+type TaskArguments struct {
 	Image      string
 	Command    []string
 	EntryPoint string
 	VMType     string
 }
 
-// NewCloudTaskFromArgs returns a new Task based on CLI args
-func NewCloudTaskFromArgs(image string, command []string, entryPoint string, vmType string) *Task {
-	return &Task{
+// NewCloudTaskArgsFromArgs returns a new TaskArguments based on CLI args
+func NewCloudTaskArgsFromArgs(image string, command []string, entryPoint string, vmType string) *TaskArguments {
+	return &TaskArguments{
 		Image:      image,
 		Command:    command,
 		EntryPoint: entryPoint,
@@ -35,9 +35,9 @@ func NewCloudTaskFromArgs(image string, command []string, entryPoint string, vmT
 	}
 }
 
-// NewCloudTaskFromBytes returns a new Task based on a (pubsub) JSON message
-func NewCloudTaskFromBytes(data []byte) *Task {
-	task := Task{}
+// NewCloudTaskArgsFromBytes returns a new TaskArguments based on a (pubsub) JSON message
+func NewCloudTaskArgsFromBytes(data []byte) *TaskArguments {
+	task := TaskArguments{}
 	err := json.Unmarshal(data, &task)
 	if err != nil {
 		log.Fatalf("Oooops, JSON task decoding error: %v", err)
@@ -45,8 +45,8 @@ func NewCloudTaskFromBytes(data []byte) *Task {
 	return &task
 }
 
-// PubSubPushTask publishes a processing Task to given topic
-func PubSubPushTask(task *Task, projectID, topicID string) error {
+// PubSubPushTask publishes a processing TaskArguments to given topic
+func PubSubPushTask(task *TaskArguments, projectID, topicID string) error {
 	log.Printf("PUBLISHING TASK to project %s topic %s:", projectID, topicID)
 	log.Printf("  image  : %s", task.Image)
 	log.Printf("  command: %q", task.Command)

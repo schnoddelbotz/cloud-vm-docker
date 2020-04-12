@@ -24,13 +24,13 @@ Despite Usage message below, no ctzz [flags] are supported after [COMMAND] [ARG.
 			command = args[1:]
 		}
 
-		task := cloud.NewCloudTaskFromArgs(image,
+		task := cloud.NewCloudTaskArgsFromArgs(image,
 			command,
 			viper.GetString(settings.FlagEntryPoint),
 			viper.GetString(settings.FlagVMType))
 		err := cloud.PubSubPushTask(task, viper.GetString(settings.FlagProject), settings.TopicNameTaskQueue)
 		if err != nil {
-			return fmt.Errorf("ERROR running Task: %v", err)
+			return fmt.Errorf("ERROR running TaskArguments: %v", err)
 		}
 		return nil
 	},

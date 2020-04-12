@@ -12,6 +12,7 @@ import (
 // https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
 // https://godoc.org/google.golang.org/api/compute/v1
 
+// fixme: this should receive a task ...
 func CreateVM(projectID, zone, vmType, instanceName string) {
 	log.Printf("Creating VM named %s of type %s in zone %s for project %s", instanceName, vmType, zone, projectID)
 	ctx := context.Background()

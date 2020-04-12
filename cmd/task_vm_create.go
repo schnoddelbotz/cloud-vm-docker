@@ -14,6 +14,7 @@ var createCmd = &cobra.Command{
 	Short: "Creates a ComputeEngine VM instance",
 
 	Run: func(cmd *cobra.Command, args []string) {
+		// FIXME: this should pass a task
 		cloud.CreateVM(viper.GetString(settings.FlagProject),
 			viper.GetString(settings.FlagZone),
 			viper.GetString(settings.FlagVMType),
