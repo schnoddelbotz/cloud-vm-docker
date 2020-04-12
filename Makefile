@@ -33,11 +33,15 @@ coverage: clean
 	PROVIDER=MEMORY go test -coverprofile=coverage.out -coverpkg=./... -ldflags='-w -s $(LDFLAGS)' ./...
 	go tool cover -html=coverage.out
 
-deploy_gcp: $(BINARY)
-	# ./cloud-task-zip-zap setup
+deploy_gcp:
+	make -j2 deploy_cfn_http deploy_cfn_pubsub
+
+deploy_cfn_http:
 	gcloud functions deploy CloudTaskZipZap --region=europe-west1 --runtime go113 \
  		--trigger-http --allow-unauthenticated \
  		--set-env-vars=CTZZ_DATASTORE_COLLECTION=cloud-task-zip-zap-test
+
+deploy_cfn_pubsub:
 	gcloud functions deploy CloudTaskZipZapProcessor --region=europe-west1 --runtime go113 \
      		--trigger-topic=ctzz-task-queue --allow-unauthenticated \
      		--set-env-vars=CTZZ_TOPIC=ctzz-task-queue

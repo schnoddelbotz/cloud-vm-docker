@@ -10,6 +10,8 @@ import (
 	"cloud.google.com/go/pubsub"
 )
 
+// https://github.com/GoogleCloudPlatform/golang-samples/blob/master/appengine_flexible/pubsub/pubsub.go
+
 // PubSubMessage is the payload of a Pub/Sub event.
 type PubSubMessage struct {
 	Data []byte `json:"data"`
@@ -33,7 +35,7 @@ func NewCloudTaskFromArgs(image string, command string, entryPoint string, vmTyp
 
 func NewCloudTaskFromBytes(data []byte) *CloudTask {
 	task := CloudTask{}
-	err := json.Unmarshal(data, task)
+	err := json.Unmarshal(data, &task)
 	if err != nil {
 		log.Fatalf("Oooops, JSON task decoding error: %v", err)
 	}
@@ -54,8 +56,10 @@ func PubSubPushTask(task *CloudTask, projectID, topicID string) error {
 		Attributes:  nil,
 		PublishTime: time.Time{},
 	}
-	res := client.Topic(topicID).Publish(ctx, &m)
-	log.Printf("PUBLISH res: %v", res)
+	if _, err := client.Topic(topicID).Publish(ctx, &m).Get(ctx); err != nil {
+		log.Fatalf("FAILED to publish: %v", err)
+	}
+	log.Println("PUBLISH successs")
 	return nil
 }
 
