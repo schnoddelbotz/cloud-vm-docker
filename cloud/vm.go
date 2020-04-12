@@ -4,25 +4,17 @@ import (
 	"context"
 	"fmt"
 	"log"
-	
+
 	"google.golang.org/api/compute/v1"
 )
 
 // https://github.com/googleapis/google-api-go-client/blob/master/examples/compute.go
 // https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
+// https://godoc.org/google.golang.org/api/compute/v1
 
 func CreateVM(projectID, vmType, instanceName string) {
 	log.Printf("Creating VM named %s of type %s in project %s", instanceName, vmType, projectID)
-
-
 	ctx := context.Background()
-
-	//c, err := google.DefaultClient(ctx, compute.CloudPlatformScope)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//computeService, err := compute.New(c)
 	computeService, err := compute.NewService(ctx)
 	if err != nil {
 		log.Fatal(err)
