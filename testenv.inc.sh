@@ -7,3 +7,6 @@ export GOOGLE_APPLICATION_CREDENTIALS=/Users/jan/.config/gcloud/jan-playground.j
 export CTZZ_PROJECT=hacker-playground-254920
 
 #export CTZZ_
+
+
+./ctzz completion -s fish | .
