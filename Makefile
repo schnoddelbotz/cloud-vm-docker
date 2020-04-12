@@ -1,5 +1,5 @@
 
-BINARY := cloud-task-zip-zap
+BINARY := ctzz
 
 VERSION := $(shell git describe --tags | cut -dv -f2)
 DOCKER_IMAGE := schnoddelbotz/cloud-task-zip-zap
@@ -14,7 +14,7 @@ build: $(BINARY)
 
 $(BINARY): $(GO_SOURCES)
 	# building cloud-task-zip-zap
-	go build -v -o $(BINARY) -ldflags='-w -s $(LDFLAGS)' ./ctzz/main.go
+	go build -v -o $(BINARY) -ldflags='-w -s $(LDFLAGS)' ./cli/main.go
 
 all_local: clean test build
 

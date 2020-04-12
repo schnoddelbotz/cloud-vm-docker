@@ -13,9 +13,9 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "cloud-task-zip-zap",
+	Use:   "ctzz",
 	Short: "A brief description of your application",
-	Long: `cloud-task-zip-zap (ctzz) runs Docker images on Google Compute Engine VMs
+	Long: `ctzz (cloud-task-zip-zap) runs Docker images on Google Compute Engine VMs
 See https://github.com/schnoddelbotz/cloud-task-zip-zap`,
 }
 
