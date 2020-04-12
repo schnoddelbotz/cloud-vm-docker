@@ -13,13 +13,7 @@ var psCmd = &cobra.Command{
 	Use:   "ps",
 	Short: "Prints VM instances, their containers, and status (like docker ps)",
 	Run: func(cmd *cobra.Command, args []string) {
-		task := cloud.Task{
-			Image:      "busybox2",
-			Command:    nil,
-			EntryPoint: "ep2",
-			VMType:     "vmt2",
-		}
-		cloud.StoreTask(viper.GetString(settings.FlagProject), task)
+		cloud.ListTasks(viper.GetString(settings.FlagProject))
 	},
 }
 
@@ -27,4 +21,7 @@ func init() {
 	rootCmd.AddCommand(psCmd)
 	psCmd.Flags().BoolP("all", "a", false, "print deleted VMs, too")
 	// tbd: add ctzz system prune to delete ... stuff.
+	// todo: add columns with cpu usage etc
+	// todo: let user select columns to display, like vm-type...
+	// todo: ALSO FETCH REAL VM (power) STATE!!!!
 }
