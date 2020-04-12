@@ -31,12 +31,16 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringP(settings.FlagProject, "p", "", "google cloud project to work within")
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringP(settings.FlagZone, "z", "europe-west1-b", "google cloud zone for VMs")
+	rootCmd.PersistentFlags().StringP(settings.FlagRegion, "r", "europe-west1", "google cloud region for CloudFunctions")
+	rootCmd.Flags().BoolP("verbose", "v", false, "verbose operations")
 
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
 	viper.SetEnvPrefix("CTZZ")
 	viper.BindPFlag(settings.FlagProject, rootCmd.PersistentFlags().Lookup(settings.FlagProject))
+	viper.BindPFlag(settings.FlagRegion, rootCmd.PersistentFlags().Lookup(settings.FlagRegion))
+	viper.BindPFlag(settings.FlagZone, rootCmd.PersistentFlags().Lookup(settings.FlagZone))
 
 }
 

@@ -31,6 +31,10 @@ const (
 	FlagEntryPoint = "entrypoint"
 	// FlagVMType ...
 	FlagVMType = "vm-type"
+	// FlagZone defines zone to run VMs in
+	FlagZone = "zone"
+	// FlagRegion defines region of CFNs
+	FlagRegion = "region"
 
 	// ActionSubmit ...
 	ActionSubmit = "submit"

@@ -9,5 +9,5 @@ require (
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/viper v1.6.3
 	go.opencensus.io v0.22.3 // indirect
-	google.golang.org/api v0.21.0 // indirect
+	google.golang.org/api v0.21.0
 )
