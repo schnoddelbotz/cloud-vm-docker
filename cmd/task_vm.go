@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
-	"github.com/spf13/viper"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
+	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
 )
 
 // vmCmd represents the vm command

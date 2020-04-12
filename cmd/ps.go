@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"github.com/schnoddelbotz/cloud-task-zip-zap/cloud"
-	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/spf13/cobra"
+	"github.com/schnoddelbotz/cloud-task-zip-zap/cloud"
+	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
 )
 
 // psCmd represents the ps command

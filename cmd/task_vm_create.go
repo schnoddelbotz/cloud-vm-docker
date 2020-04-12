@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
 
 	"github.com/schnoddelbotz/cloud-task-zip-zap/cloud"
 	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
@@ -35,7 +36,7 @@ var createCmd = &cobra.Command{
 			viper.GetString(settings.FlagEntryPoint), // FIXME!!! UNUSED!!!
 			viper.GetString(settings.FlagVMType))
 		log.Printf("Writing task to DataStore: %+v", taskArguments)
-		task := cloud.StoreTask(viper.GetString(settings.FlagProject), *taskArguments)
+		task := cloud.StoreNewTask(viper.GetString(settings.FlagProject), *taskArguments)
 		log.Printf("Success writing Datastore, now creating VM..")
 		createOp, err := cloud.CreateVM(viper.GetString(settings.FlagProject),
 			viper.GetString(settings.FlagZone),

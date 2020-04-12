@@ -13,22 +13,15 @@ import (
 	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
 )
 
-// Task describes structure of our FireStore/DataStore documents
-type Task struct {
-	TaskArguments TaskArguments
-	Status        string
-	VMID          string
-	ShutdownToken string
-	CreatedAt     time.Time
-}
-
 // https://cloud.google.com/datastore/docs/reference/libraries
 // https://cloud.google.com/datastore/docs/concepts/queries
 
-// StoreTask saves a new task in FireStore DB.
+// Thing below should be split into NewTask(proj, args).Store()
+
+// StoreNewTask saves a new task in FireStore DB.
 // It is called by PubSubFn for each message received.
 // Note that just storing a task does nothing; the pubsubtrigger is supposed to spin up the VM for the Task.
-func StoreTask(projectID string, taskArguments TaskArguments) Task {
+func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 	ctx := context.Background()
 	client, err := datastore.NewClient(ctx, projectID)
 	if err != nil {
