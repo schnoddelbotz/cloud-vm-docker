@@ -17,10 +17,16 @@ type Task struct {
 }
 
 const (
-	TaskStatusCreated           = "created"           // initial state after creating new DataStore entry
-	TaskStatusStarted           = "started"           // VM was created,
-	TaskStatusRunning           = "running"           // client optionally reports this from within container + progress / eta
-	TaskStatusKilled            = "killed"            // forceful `ctzz task-vm kill <VMID>`
-	TaskStatusTerminatedFailure = "completed-failure" // container exited, code <> 0
-	TaskStatusTerminatedSuccess = "completed-success" // container exited, code == 0
+	// TaskStatusCreated : initial state after creating new DataStore entry
+	TaskStatusCreated = "created"
+	// TaskStatusStarted : VM was created
+	TaskStatusStarted = "started"
+	// TaskStatusRunning : client optionally reports this from within container + progress / eta
+	TaskStatusRunning = "running"
+	// TaskStatusKilled : forceful `ctzz task-vm kill <VMID>`
+	TaskStatusKilled = "killed"
+	// TaskStatusTerminatedFailure : container exited, code <> 0
+	TaskStatusTerminatedFailure = "completed-failure"
+	// TaskStatusTerminatedSuccess : container exited, code == 0
+	TaskStatusTerminatedSuccess = "completed-success"
 )

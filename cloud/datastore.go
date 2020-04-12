@@ -30,9 +30,7 @@ func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 
 	// Sets the name/ID for the new entity. // DocumentName / ID
 	name := generateVMID()
-	// Creates a Key instance.
 	taskKey := datastore.NameKey(settings.FireStoreCollection, name, nil)
-	// Creates a Task instance.
 	doc := Task{
 		Status:        TaskStatusCreated,
 		TaskArguments: taskArguments,
@@ -52,7 +50,6 @@ func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 
 // ListTasks provides 'docker ps' functionality by querying DataStore
 func ListTasks(projectID string) {
-	// log.Printf("Listing tasks in project %s on collection %s", projectID, settings.FireStoreCollection)
 	ctx := context.Background()
 	client, err := datastore.NewClient(ctx, projectID)
 	if err != nil {
@@ -66,10 +63,11 @@ func ListTasks(projectID string) {
 	}
 
 	// todo: dynamically check/set required field width -- and/or add flag: disable shortening below...
-	fmt.Printf("VM_ID        IMAGE                   COMMAND                                  CREATED        STATUS\n")
+	outputFormat := "%-12s %-23s %-40s %-14s %s\n"
+	fmt.Printf(outputFormat, "VM_ID", "IMAGE", "COMMAND", "CREATED", "STATUS")
 	for _, doc := range docList {
 		cmd := strings.Join(doc.TaskArguments.Command, " ")
-		fmt.Printf("%-12s %-23s %-40s %-14s %s\n",
+		fmt.Printf(outputFormat,
 			doc.VMID, getImageNameWithoutRegistryAndTag(doc.TaskArguments.Image),
 			shortenToMaxLength(cmd, 38), "5 min ago", doc.Status)
 	}
