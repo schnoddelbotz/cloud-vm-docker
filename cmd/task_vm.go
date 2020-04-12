@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
+	"github.com/spf13/viper"
 
 	"github.com/spf13/cobra"
 )
@@ -16,5 +18,7 @@ var vmCmd = &cobra.Command{
 }
 
 func init() {
+	vmCmd.Flags().StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
+	viper.BindPFlag(settings.FlagVMType, runCmd.Flags().Lookup(settings.FlagVMType))
 	rootCmd.AddCommand(vmCmd)
 }
