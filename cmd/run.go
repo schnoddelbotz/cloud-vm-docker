@@ -31,15 +31,17 @@ var runCmd = &cobra.Command{
 func init() {
 	runCmd.Flags().StringP(settings.FlagImage, "i", "busybox", "image to run on VM")
 	runCmd.Flags().StringP(settings.FlagCommand, "c", "", "command to run in container")
-	//runCmd.Flags().StringP(settings.FlagArgs, "a", "{}", "JSON args to pass to container app") -- complicates, not needed, command can do all?
+	runCmd.Flags().StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
 	runCmd.Flags().StringP(settings.FlagArgsFile, "f", "", "like --args, but read from given file")
+	//runCmd.Flags().StringP(settings.FlagArgs, "a", "{}", "JSON args to pass to container app") -- complicates, not needed, command can do all?
 	// todo: have bool flag --via-cfn -- as this client runs directly into pubsub by default.
 	//       "legacy" scripts may want to spawn VMs just via CFN/HTTP+Token, to avoid need for this binary (+svc_acc)
 
 	viper.BindPFlag(settings.FlagImage, runCmd.Flags().Lookup(settings.FlagImage))
 	viper.BindPFlag(settings.FlagCommand, runCmd.Flags().Lookup(settings.FlagCommand))
-	//viper.BindPFlag(settings.FlagArgs, runCmd.Flags().Lookup(settings.FlagArgs))
+	viper.BindPFlag(settings.FlagVMType, runCmd.Flags().Lookup(settings.FlagVMType))
 	viper.BindPFlag(settings.FlagArgsFile, runCmd.Flags().Lookup(settings.FlagArgsFile))
+	//viper.BindPFlag(settings.FlagArgs, runCmd.Flags().Lookup(settings.FlagArgs))
 
 	rootCmd.AddCommand(runCmd)
 }

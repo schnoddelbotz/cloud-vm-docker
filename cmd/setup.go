@@ -20,5 +20,6 @@ var setupCmd = &cobra.Command{
 
 func init() {
 	// add option do disable http cloudfunctions -- more secure, but no curl et al, only this tool or gcloud invoke
-	rootCmd.AddCommand(setupCmd)
+	// DISABLED for now ...
+	// rootCmd.AddCommand(setupCmd)
 }

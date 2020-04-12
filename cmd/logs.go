@@ -17,7 +17,7 @@ var logsCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(logsCmd)
+	vmCmd.AddCommand(logsCmd)
 	// based on task UUID, looks up VM stackdriver logs and streams to stdout or file
 	// --follow ? -- until proc exits?
 	// --to-file
