@@ -9,11 +9,11 @@ import (
 )
 
 // CloudTaskZipZapProcessor consumes a Pub/Sub message.
-func CloudTaskZipZapProcessor(ctx context.Context, m cloud.PubSubMessage) error {
-	log.Printf("Request ctx: %v", ctx)
+func CloudTaskZipZapProcessor(_ context.Context, m cloud.PubSubMessage) error {
 	task := cloud.NewCloudTaskFromBytes(m.Data)
-	project := os.Getenv("GCP_PROJECT")
-	log.Printf("TASK: image='%s' command=%q vmtype='%s'!", task.Image, task.Command, task.VMType)
+	project := os.Getenv("CTZZ_PROJECT")
+	log.Printf("TASK: project='%s' image='%s' command=%q vmtype='%s'!", project, task.Image, task.Command, task.VMType)
 	cloud.StoreTask(project, *task)
+	log.Printf("Created task successfully, should now spawn VM...")
 	return nil
 }

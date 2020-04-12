@@ -44,7 +44,7 @@ deploy_cfn_http:
 deploy_cfn_pubsub:
 	gcloud functions deploy CloudTaskZipZapProcessor --region=europe-west1 --runtime go113 \
      		--trigger-topic=ctzz-task-queue --allow-unauthenticated \
-     		--set-env-vars=CTZZ_TOPIC=ctzz-task-queue
+     		--set-env-vars=CTZZ_TOPIC=ctzz-task-queue,CTZZ_PROJECT=$(CTZZ_PROJECT)
 
 docker_image:
 	docker build -f Docker/cloud-task-zip-zap.Dockerfile -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .
