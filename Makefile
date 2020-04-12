@@ -9,8 +9,6 @@ GO_SOURCES := */*.go */*/*.go */*/*/*.go
 
 
 build: $(BINARY)
-	# running: $(BINARY) version
-	@./$(BINARY) version
 
 $(BINARY): $(GO_SOURCES)
 	# building cloud-task-zip-zap

@@ -36,14 +36,14 @@ func StoreTask(projectID string, taskArguments TaskArguments) Task {
 	}
 
 	// Sets the name/ID for the new entity. // DocumentName / ID
-	name := generateTaskName(taskArguments)
+	name := generateVMID()
 	// Creates a Key instance.
 	taskKey := datastore.NameKey(settings.FireStoreCollection, name, nil)
 	// Creates a Task instance.
 	doc := Task{
 		Status:        "CREATED",
 		TaskArguments: taskArguments,
-		VMID:          generateVMID(),
+		VMID:          name, // dup! also doc title now ...
 		CreatedAt:     time.Now(),
 		ShutdownToken: generateShutdownToken(),
 	}
@@ -65,7 +65,7 @@ func ListTasks(projectID string) {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	docList := []Task{}
+	docList := make([]Task, 0)
 	q := datastore.NewQuery(settings.FireStoreCollection)
 	_, err = client.GetAll(ctx, q, &docList)
 	if err != nil {
@@ -85,7 +85,7 @@ func ListTasks(projectID string) {
 }
 
 func generateTaskName(task TaskArguments) string {
-	// ... as used as DataStore ID
+	// ... WAS: as used as DataStore ID -- drop?
 	now := time.Now()
 	datePart := now.Format("2006-01-02_15:04:05")
 	return fmt.Sprintf("%s_%s", datePart, task.Image)
