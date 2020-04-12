@@ -11,6 +11,6 @@ import (
 func CloudTaskZipZapProcessor(ctx context.Context, m cloud.PubSubMessage) error {
 	log.Printf("Request ctx: %v", ctx)
 	task := cloud.NewCloudTaskFromBytes(m.Data)
-	log.Printf("TASK: image='%s' command='%s' vmtype='%s'!", task.Image, task.Command, task.VMType)
+	log.Printf("TASK: image='%s' command=%q vmtype='%s'!", task.Image, task.Command, task.VMType)
 	return nil
 }

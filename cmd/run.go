@@ -12,36 +12,43 @@ import (
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
-	Use:   "run",
+	Use:   "run IMAGE [COMMAND] [ARG...]",
 	Short: "run a dockerized command to be executed on a ComputeEngine VM",
-	Long:  `run dockerized command, pass args via json (from cmd line or file)`,
-	Run: func(cmd *cobra.Command, args []string) {
-		task := cloud.NewCloudTaskFromArgs(viper.GetString(settings.FlagImage),
-			viper.GetString(settings.FlagCommand),
+	Long:  `run dockerized command on ComputeEngine VM
+Despite Usage message below, no ctzz [flags] are supported after [COMMAND] [ARG...]`,
+	Args: cobra.MinimumNArgs(1),
+
+	RunE: func(cmd *cobra.Command, args []string) error {
+		image := args[0]
+		var command []string
+		if len(args)>1 {
+			command = args[1:]
+		}
+
+		task := cloud.NewCloudTaskFromArgs(image,
+			command,
 			viper.GetString(settings.FlagEntryPoint),
 			viper.GetString(settings.FlagVMType))
 		err := cloud.PubSubPushTask(task, viper.GetString(settings.FlagProject), settings.TopicNameTaskQueue)
 		if err != nil {
-			fmt.Printf("ERROR publishing task: %v\n", err)
+			return fmt.Errorf("ERROR running Task: %v", err)
 		}
-		fmt.Printf("SUCCESS\n")
+		return nil
 	},
 }
 
 func init() {
-	runCmd.Flags().StringP(settings.FlagImage, "i", "busybox", "image to run on VM")
-	runCmd.Flags().StringP(settings.FlagCommand, "c", "", "command to run in container")
-	runCmd.Flags().StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
-	runCmd.Flags().StringP(settings.FlagArgsFile, "f", "", "like --args, but read from given file")
+	// https://github.com/docker/cli/blob/master/cli/command/container/run.go
+	flags := runCmd.Flags()
+	flags.SetInterspersed(false)
+	flags.StringP(settings.FlagDetached, "d", "detach", "Run container in background and print container ID")
+	flags.StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
 	//runCmd.Flags().StringP(settings.FlagArgs, "a", "{}", "JSON args to pass to container app") -- complicates, not needed, command can do all?
 	// todo: have bool flag --via-cfn -- as this client runs directly into pubsub by default.
 	//       "legacy" scripts may want to spawn VMs just via CFN/HTTP+Token, to avoid need for this binary (+svc_acc)
 
-	viper.BindPFlag(settings.FlagImage, runCmd.Flags().Lookup(settings.FlagImage))
-	viper.BindPFlag(settings.FlagCommand, runCmd.Flags().Lookup(settings.FlagCommand))
+	viper.BindPFlag(settings.FlagDetached, runCmd.Flags().Lookup(settings.FlagDetached))
 	viper.BindPFlag(settings.FlagVMType, runCmd.Flags().Lookup(settings.FlagVMType))
-	viper.BindPFlag(settings.FlagArgsFile, runCmd.Flags().Lookup(settings.FlagArgsFile))
-	//viper.BindPFlag(settings.FlagArgs, runCmd.Flags().Lookup(settings.FlagArgs))
 
 	rootCmd.AddCommand(runCmd)
 }

@@ -20,13 +20,13 @@ type PubSubMessage struct {
 // Task describes a Docker command to run on a specific type of VM
 type Task struct {
 	Image      string
-	Command    string
+	Command    []string
 	EntryPoint string
 	VMType     string
 }
 
 // NewCloudTaskFromArgs returns a new Task based on CLI args
-func NewCloudTaskFromArgs(image string, command string, entryPoint string, vmType string) *Task {
+func NewCloudTaskFromArgs(image string, command []string, entryPoint string, vmType string) *Task {
 	return &Task{
 		Image:      image,
 		Command:    command,
@@ -47,7 +47,10 @@ func NewCloudTaskFromBytes(data []byte) *Task {
 
 // PubSubPushTask publishes a processing Task to given topic
 func PubSubPushTask(task *Task, projectID, topicID string) error {
-	log.Printf("PUBLISHING TASK: %v to project %s topic %s", task, projectID, topicID)
+	log.Printf("PUBLISHING TASK to project %s topic %s:", projectID, topicID)
+	log.Printf("  image  : %s", task.Image)
+	log.Printf("  command: %q", task.Command)
+	log.Printf("  vm_type: %s", task.VMType)
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
