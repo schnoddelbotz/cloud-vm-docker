@@ -28,13 +28,13 @@ func init() {
 	//}
 }
 
-// CloudTaskZipZap handler manages secrets but also delivers web app.
+// CloudVMDocker handler manages secrets but also delivers web app.
 // It is deployed as single Google CloudFunction.
-func CloudTaskZipZap(w http.ResponseWriter, r *http.Request) {
-	handlers.CloudTaskZipZap(w, r) // , handle
+func CloudVMDocker(w http.ResponseWriter, r *http.Request) {
+	handlers.CloudVMDocker(w, r) // , handle
 }
 
-// CloudTaskZipZapProcessor consumes a Pub/Sub message.
-func CloudTaskZipZapProcessor(ctx context.Context, m cloud.PubSubMessage) error {
-	return handlers.CloudTaskZipZapProcessor(ctx, m)
+// CloudVMDockerProcessor consumes a Pub/Sub message.
+func CloudVMDockerProcessor(ctx context.Context, m cloud.PubSubMessage) error {
+	return handlers.CloudVMDockerProcessor(ctx, m)
 }

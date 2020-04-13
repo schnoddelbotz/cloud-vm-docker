@@ -8,8 +8,8 @@ import (
 	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 )
 
-// CloudTaskZipZapProcessor consumes a Pub/Sub message.
-func CloudTaskZipZapProcessor(_ context.Context, m cloud.PubSubMessage) error {
+// CloudVMDockerProcessor consumes a Pub/Sub message.
+func CloudVMDockerProcessor(_ context.Context, m cloud.PubSubMessage) error {
 	task := cloud.NewCloudTaskArgsFromBytes(m.Data)
 	project := os.Getenv("CVD_PROJECT")
 	log.Printf("TASK: project='%s' image='%s' command=%q vmtype='%s'!", project, task.Image, task.Command, task.VMType)

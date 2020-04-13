@@ -36,12 +36,12 @@ deploy_gcp:
 	make -j2 deploy_cfn_http deploy_cfn_pubsub
 
 deploy_cfn_http:
-	gcloud functions deploy CloudTaskZipZap --region=europe-west1 --runtime go113 \
+	gcloud functions deploy CloudVMDocker --region=europe-west1 --runtime go113 \
  		--trigger-http --allow-unauthenticated \
  		--set-env-vars=CVD_DATASTORE_COLLECTION=cloud-vm-docker-test
 
 deploy_cfn_pubsub:
-	gcloud functions deploy CloudTaskZipZapProcessor --region=europe-west1 --runtime go113 \
+	gcloud functions deploy CloudVMDockerProcessor --region=europe-west1 --runtime go113 \
      		--trigger-topic=cloud-vm-docker-task-queue --allow-unauthenticated \
      		--set-env-vars=CVD_TOPIC=cloud-vm-docker-task-queue,CVD_PROJECT=$(CVD_PROJECT)
 
