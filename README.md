@@ -82,7 +82,7 @@ make gcp_deploy
 
 - have some monitoring dashboard web endpoint using `status` data + google monitoring/logs links ... 
 - or update some google-hosted dashboard to add/remove machines as they come/run/go(history)
-- auto-completion
+- https://cloud.google.com/compute/docs/storing-retrieving-metadata --> put VM meta in DataStore / partially? 
 - let user decide on `run` whether to use HTTP endpoint or write pubsub directly
 - deployment: let user disable HTTP endpoint if not needed
 - list which commands work as 100% "drop-in" replacement for docker commands -- goal: as-much-as-possible
