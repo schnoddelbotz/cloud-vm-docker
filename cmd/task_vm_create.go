@@ -29,7 +29,7 @@ var createCmd = &cobra.Command{
 		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
 			viper.GetString(settings.FlagEntryPoint), // FIXME!!! UNUSED!!!
 			g.VMType)
-		sshKeys := cloud.GetUserSSHPublicKeys(g.SSHPublicKey, g.EnableSSH)
+		sshKeys := cloud.GetUserSSHPublicKeys(g.SSHPublicKey, g.DisableSSH)
 
 		log.Printf("Writing task to DataStore: %+v", taskArguments)
 		task := cloud.StoreNewTask(g.ProjectID, *taskArguments)

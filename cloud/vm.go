@@ -1,19 +1,22 @@
 package cloud
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 	"log"
 	"strings"
+	"text/template"
 	"time"
 
 	"google.golang.org/api/compute/v1"
+
+	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
 // CreateVM spins up a ComputeEngine VM instance ...
 func CreateVM(g settings.GoogleSettings, task Task, sshKeys string) (*compute.Operation, error) {
-	log.Printf("Creating VM named %s of type %s in zone %s for project %s", task.VMID, task.TaskArguments.VMType, g.Zone, g.ProjectID)
+	log.Printf("Creating VM named %s of type %s in zone %s in project %s", task.VMID, task.TaskArguments.VMType, g.Zone, g.ProjectID)
 	computeService, ctx := NewComputeService()
 
 	rb := buildInstanceInsertionRequest(g, task)
@@ -65,6 +68,7 @@ func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *comput
 	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s", g.Zone, task.TaskArguments.VMType)
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + g.ProjectID
 	cloudInit := buildCloudInit(g, task)
+	//log.Fatalf("NOT now\n%s\n", cloudInit)
 	return &compute.Instance{
 		Name:        task.VMID,
 		MachineType: machineTypeFQDN,
@@ -130,17 +134,7 @@ func getCOSImageLink() string {
 }
 
 func buildCloudInit(g settings.GoogleSettings, task Task) string {
-	project := g.ProjectID
-	cfnRegion := g.Region
-	image := task.TaskArguments.Image
-	command := task.TaskArguments.Command
-	// FIXME use text/template
-	//func buildCloudInit(project, cfnRegion, image string, command []string) string {
-	// should set vm shutdown token
-	// should use task as first arg?
-	// should quote all command parts
-	myCommand := strings.Join(command, " ")
-	return fmt.Sprintf(`#cloud-config
+	const tpl = `#cloud-config
 users:
 - name: cloudservice
   uid: 2000
@@ -163,7 +157,8 @@ write_files:
     ExecStart=/usr/bin/docker run --rm \
         -v/var/run/docker.sock:/var/run/docker.sock \
         -v/home/cloudservice/.docker/config.json:/home/cloudservice/.docker/config.json \
-        -eGCP_PROJECT=%s -eGCP_REGION=%s --name=cloud-vm-docker %s %s
+        -eGCP_PROJECT={{.Google.ProjectID}} -eGCP_REGION={{.Google.Region}} --name=cloud-vm-docker \
+		{{.Task.TaskArguments.Image}} {{.QuotedCommand}}
     ExecStop=/usr/bin/docker stop cloud-vm-docker
     ExecStopPost=/usr/bin/docker rm cloud-vm-docker
 
@@ -172,5 +167,26 @@ runcmd:
 - docker-credential-gcr configure-docker
 - systemctl daemon-reload
 - systemctl start cloudservice.service
-`, project, cfnRegion, image, myCommand)
+`
+	// cloud-vm-docker task-vm create busybox sh -c 'sleep 3600'
+	// --> busybox "sh" "-c" "sleep 3600"
+	quotedCommand := ""
+	if len(task.TaskArguments.Command) > 0 {
+		quotedCommand = strings.Trim(fmt.Sprintf("%q", task.TaskArguments.Command), "[]")
+	}
+	type TemplateData struct {
+		Google        settings.GoogleSettings
+		Task          Task
+		QuotedCommand string
+	}
+	templateData := TemplateData{Google: g, Task: task, QuotedCommand: quotedCommand}
+	t := template.Must(template.New("cloud-init").Parse(tpl))
+	var result bytes.Buffer
+	err := t.Execute(&result, templateData)
+
+	if err != nil {
+		log.Fatalf("executing cloud-init template: %s", err)
+	}
+
+	return result.String()
 }
