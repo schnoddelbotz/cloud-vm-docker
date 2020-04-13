@@ -1,6 +1,10 @@
 package settings
 
-import "github.com/spf13/viper"
+import (
+	"strings"
+
+	"github.com/spf13/viper"
+)
 
 // GoogleSettings define anything Google related (project, service account, ...)
 type GoogleSettings struct {
@@ -46,6 +50,10 @@ const (
 
 // EnvironmentToGoogleSettings translates environment variables into a GoogleSettings struct.
 func EnvironmentToGoogleSettings() GoogleSettings {
+	viper.AutomaticEnv()
+	replacer := strings.NewReplacer("-", "_")
+	viper.SetEnvKeyReplacer(replacer)
+	viper.SetEnvPrefix("CVD")
 	s := GoogleSettings{
 		ProjectID:                  viper.GetString(FlagProject),
 		Zone:                       viper.GetString(FlagZone),

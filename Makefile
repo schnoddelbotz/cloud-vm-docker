@@ -33,13 +33,13 @@ coverage: clean
 	PROVIDER=MEMORY go test -coverprofile=coverage.out -coverpkg=./... -ldflags='-w -s $(LDFLAGS)' ./...
 	go tool cover -html=coverage.out
 
-deploy_gcp:
+deploy_gcp: test clean
 	make -j2 deploy_cfn_http deploy_cfn_pubsub
 
 deploy_cfn_http:
 	gcloud functions deploy CloudVMDocker --region=europe-west1 --runtime go113 \
  		--trigger-http --allow-unauthenticated \
- 		--set-env-vars=CVD_DATASTORE_COLLECTION=cloud-vm-docker-test
+ 		--set-env-vars=CVD_DATASTORE_COLLECTION=cloud-vm-docker-test,CVD_PROJECT=$(CVD_PROJECT)
 
 deploy_cfn_pubsub:
 	gcloud functions deploy CloudVMDockerProcessor --region=europe-west1 --runtime go113 \

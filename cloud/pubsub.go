@@ -23,6 +23,7 @@ func PubSubPushTask(task *TaskArguments, projectID, topicID string) error {
 	log.Printf("  image  : %s", task.Image)
 	log.Printf("  command: %q", task.Command)
 	log.Printf("  vm_type: %s", task.VMType)
+	log.Printf("  vm_id: %s", task.VMID)
 	client, ctx := NewPubSubClient(projectID)
 	data, _ := json.Marshal(task)
 	m := pubsub.Message{

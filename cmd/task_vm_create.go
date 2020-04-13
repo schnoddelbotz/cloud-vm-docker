@@ -34,7 +34,7 @@ var createCmd = &cobra.Command{
 		log.Printf("Writing task to DataStore: %+v", taskArguments)
 		task := cloud.StoreNewTask(g.ProjectID, *taskArguments)
 
-		createOp, err := cloud.CreateVM(g.ProjectID, g.Zone, task, sshKeys)
+		createOp, err := cloud.CreateVM(g, task, sshKeys)
 		if err != nil {
 			return fmt.Errorf("ERROR running TaskArguments: %v", err)
 		}

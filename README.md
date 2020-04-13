@@ -56,6 +56,14 @@ Why bother with cloud-vm-docker? Because ...
   the VMs nor setting up Docker, nor starting processes in those VMs -- cloud-vm-docker does it all!
 - To circumvent some limitations listed in https://cloud.google.com/compute/docs/containers/deploying-containers
 
+### example use cases
+
+- use cloud-vm-docker eg. in your Airflow workflows, to off-load resource hungry compute tasks to the cloud
+- use cloud-vm-docker eg. to run some jMeter benchmarks on capable cloud VMs ... against your own site
+- use cloud-vm-docker eg. data-heavy processing tasks, which benefit from cloud data "locality"
+- use cloud-vm-docker eg. to spin up an VM instance for further operations to be carried out via SSH
+- playing with Go, Docker and GoogleCloud APIs
+
 ## setting up google cloud for cloud-vm-docker usage
 
 for deployment, ensure you did this once:

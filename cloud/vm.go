@@ -3,6 +3,7 @@ package cloud
 import (
 	"context"
 	"fmt"
+	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 	"log"
 	"strings"
 	"time"
@@ -11,15 +12,12 @@ import (
 )
 
 // CreateVM spins up a ComputeEngine VM instance ...
-func CreateVM(projectID, zone string, task Task, sshKeys string) (*compute.Operation, error) {
-	log.Printf("Creating VM named %s of type %s in zone %s for project %s", task.VMID, task.TaskArguments.VMType, zone, projectID)
+func CreateVM(g settings.GoogleSettings, task Task, sshKeys string) (*compute.Operation, error) {
+	log.Printf("Creating VM named %s of type %s in zone %s for project %s", task.VMID, task.TaskArguments.VMType, g.Zone, g.ProjectID)
 	computeService, ctx := NewComputeService()
 
-	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s", zone, task.TaskArguments.VMType)
-	prefix := "https://www.googleapis.com/compute/v1/projects/" + projectID
-	cloudInit := buildCloudInit(projectID, "cfnRegion", task.TaskArguments.Image, task.TaskArguments.Command)
-	rb := buildInstanceInsertionRequest(task.VMID, machineTypeFQDN, prefix, sshKeys, cloudInit)
-	resp, err := computeService.Instances.Insert(projectID, zone, rb).Context(ctx).Do()
+	rb := buildInstanceInsertionRequest(g, task)
+	resp, err := computeService.Instances.Insert(g.ProjectID, g.Zone, rb).Context(ctx).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +47,6 @@ func WaitForOperation(project, zone, operation string) {
 		time.Sleep(1 * time.Second)
 		waited++
 	}
-
 }
 
 // NewComputeService returns a compute service client and its context; fatally fails on error
@@ -62,10 +59,14 @@ func NewComputeService() (*compute.Service, context.Context) {
 	return computeService, ctx
 }
 
-func buildInstanceInsertionRequest(instanceName, machineTypeFQDN, prefix, sshKeys, cloudInit string) *compute.Instance {
+func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *compute.Instance {
+	// instanceName, machineTypeFQDN, prefix, sshKeys, cloudInit string
 	trueString := "true"
+	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s", g.Zone, task.TaskArguments.VMType)
+	prefix := "https://www.googleapis.com/compute/v1/projects/" + g.ProjectID
+	cloudInit := buildCloudInit(g, task)
 	return &compute.Instance{
-		Name:        instanceName,
+		Name:        task.VMID,
 		MachineType: machineTypeFQDN,
 		Disks: []*compute.AttachedDisk{
 			{
@@ -73,7 +74,7 @@ func buildInstanceInsertionRequest(instanceName, machineTypeFQDN, prefix, sshKey
 				Boot:       true,
 				Type:       "PERSISTENT",
 				InitializeParams: &compute.AttachedDiskInitializeParams{
-					DiskName:    "my-root-pd-" + instanceName,
+					DiskName:    "my-root-pd-" + task.VMID, // watch out! DiskName must be unique in project
 					SourceImage: getCOSImageLink(),
 				},
 			},
@@ -102,7 +103,7 @@ func buildInstanceInsertionRequest(instanceName, machineTypeFQDN, prefix, sshKey
 			Items: []*compute.MetadataItems{
 				{
 					Key:   "ssh-keys",
-					Value: &sshKeys,
+					Value: &task.SSHPubKeys,
 				},
 				{
 					Key:   "google-logging-enabled",
@@ -128,7 +129,13 @@ func getCOSImageLink() string {
 	return image.SelfLink
 }
 
-func buildCloudInit(project, cfnRegion, image string, command []string) string {
+func buildCloudInit(g settings.GoogleSettings, task Task) string {
+	project := g.ProjectID
+	cfnRegion := g.Region
+	image := task.TaskArguments.Image
+	command := task.TaskArguments.Command
+	// FIXME use text/template
+	//func buildCloudInit(project, cfnRegion, image string, command []string) string {
 	// should set vm shutdown token
 	// should use task as first arg?
 	// should quote all command parts

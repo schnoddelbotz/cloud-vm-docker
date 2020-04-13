@@ -11,15 +11,18 @@ type TaskArguments struct {
 	Command    []string
 	EntryPoint string
 	VMType     string
+	VMID       string // we must pass this in upon creation request ... as async pubsub would not tell us
 }
 
 // NewCloudTaskArgsFromArgs returns a new TaskArguments based on CLI args
 func NewCloudTaskArgsFromArgs(image string, command []string, entryPoint string, vmType string) *TaskArguments {
+	vmID := generateVMID()
 	return &TaskArguments{
 		Image:      image,
 		Command:    command,
 		EntryPoint: entryPoint,
 		VMType:     vmType,
+		VMID:       vmID,
 	}
 }
 

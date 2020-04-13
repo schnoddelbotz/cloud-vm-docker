@@ -38,9 +38,11 @@ func init() {
 	rootCmd.PersistentFlags().StringP(settings.FlagRegion, "r", "europe-west1", "google cloud region for CloudFunctions")
 	rootCmd.Flags().BoolP("verbose", "v", false, "verbose operations")
 
+	/// DUP!!! lives in settings.go, too FIXME?
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
 	viper.SetEnvPrefix("CVD")
+	///
 	viper.BindPFlag(settings.FlagProject, rootCmd.PersistentFlags().Lookup(settings.FlagProject))
 	viper.BindPFlag(settings.FlagRegion, rootCmd.PersistentFlags().Lookup(settings.FlagRegion))
 	viper.BindPFlag(settings.FlagZone, rootCmd.PersistentFlags().Lookup(settings.FlagZone))

@@ -26,11 +26,13 @@ func NewEnvironment(googleSettings settings.GoogleSettings, withPubSubClient boo
 	var dataStoreClient *datastore.Client
 	var computeService *compute.Service
 
+	eContext := context.Background()
+
 	if withPubSubClient {
 		pubSubClient, _ = cloud.NewPubSubClient(googleSettings.ProjectID)
 	}
 	if withDataStoreClient {
-		dataStoreClient, _ = cloud.NewDataStoreClient(googleSettings.ProjectID)
+		dataStoreClient = cloud.NewDataStoreClient(eContext, googleSettings.ProjectID)
 	}
 	if withComputeService {
 		computeService, _ = cloud.NewComputeService()
@@ -38,7 +40,7 @@ func NewEnvironment(googleSettings settings.GoogleSettings, withPubSubClient boo
 
 	return &Environment{
 		GoogleSettings:  googleSettings,
-		Context:         context.Background(),
+		Context:         eContext,
 		PubSubClient:    pubSubClient,
 		DataStoreClient: dataStoreClient,
 		ComputeService:  computeService,

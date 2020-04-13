@@ -10,7 +10,6 @@ import (
 
 	"cloud.google.com/go/datastore"
 
-	//"github.com/schnoddelbotz/cloud-vm-docker/handlers"
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
@@ -23,14 +22,14 @@ import (
 // It is called by PubSubFn for each message received.
 // Note that just storing a task does nothing; the pubsubtrigger is supposed to spin up the VM for the Task.
 func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
-	client, ctx := NewDataStoreClient(projectID)
+	ctx := context.Background()
+	client := NewDataStoreClient(ctx, projectID)
 	// Sets the name/ID for the new entity. // DocumentName / ID
-	name := generateVMID()
-	taskKey := datastore.NameKey(settings.FireStoreCollection, name, nil)
+	taskKey := datastore.NameKey(settings.FireStoreCollection, taskArguments.VMID, nil)
 	doc := Task{
 		Status:        TaskStatusCreated,
 		TaskArguments: taskArguments,
-		VMID:          name, // dup! also doc title now ...
+		VMID:          taskArguments.VMID, // dup! also doc title now ...
 		CreatedAt:     time.Now(),
 		ShutdownToken: generateShutdownToken(),
 	}
@@ -43,6 +42,8 @@ func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 	log.Printf("Saved %v: %v\n", taskKey, doc.Status)
 	return doc
 }
+
+//// FIX THIS MESS
 
 //
 //func (e *handlers.Environment) StoreTask(taskArguments TaskArguments) Task {
@@ -69,7 +70,8 @@ func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 
 // ListTasks provides 'docker ps' functionality by querying DataStore
 func ListTasks(projectID string) {
-	client, ctx := NewDataStoreClient(projectID)
+	ctx := context.Background() // fixme pass in
+	client := NewDataStoreClient(ctx, projectID)
 	docList := make([]Task, 0)
 
 	// todo: add filter (-a arg), sorting, FIX CREATED OUTPUT
@@ -93,13 +95,12 @@ func ListTasks(projectID string) {
 }
 
 // NewDataStoreClient returns a dataStore client and its context, exits fatally on error
-func NewDataStoreClient(projectID string) (*datastore.Client, context.Context) {
-	ctx := context.Background()
+func NewDataStoreClient(ctx context.Context, projectID string) *datastore.Client {
 	client, err := datastore.NewClient(ctx, projectID)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	return client, ctx
+	return client
 }
 
 func generateTaskName(task TaskArguments) string {

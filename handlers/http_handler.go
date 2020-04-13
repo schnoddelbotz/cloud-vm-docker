@@ -1,11 +1,15 @@
 package handlers
 
-import "net/http"
+import (
+	"log"
+	"net/http"
+)
 
 // CloudVMDocker HTTP CloudFunction handler makes VMs triggerable via plain https+token request
-func CloudVMDocker(w http.ResponseWriter, r *http.Request) {
+func CloudVMDocker(w http.ResponseWriter, r *http.Request, env *Environment) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"foo":"bar"}`))
+	log.Printf("Got request ... my env proj: %v", env.GoogleSettings.ProjectID)
 	// TODO:
 	// This should become an HTTP entrypoint for exposing cloud-vm-docker functionality via simple JSON api.
 	// While using cloud-vm-docker is obviously the most simple/direct approach to submit tasks or
