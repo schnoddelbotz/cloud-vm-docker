@@ -38,12 +38,12 @@ deploy_gcp:
 deploy_cfn_http:
 	gcloud functions deploy CloudTaskZipZap --region=europe-west1 --runtime go113 \
  		--trigger-http --allow-unauthenticated \
- 		--set-env-vars=CTZZ_DATASTORE_COLLECTION=cloud-vm-docker-test
+ 		--set-env-vars=CVD_DATASTORE_COLLECTION=cloud-vm-docker-test
 
 deploy_cfn_pubsub:
 	gcloud functions deploy CloudTaskZipZapProcessor --region=europe-west1 --runtime go113 \
      		--trigger-topic=cloud-vm-docker-task-queue --allow-unauthenticated \
-     		--set-env-vars=CTZZ_TOPIC=cloud-vm-docker-task-queue,CTZZ_PROJECT=$(CTZZ_PROJECT)
+     		--set-env-vars=CVD_TOPIC=cloud-vm-docker-task-queue,CVD_PROJECT=$(CVD_PROJECT)
 
 docker_image:
 	docker build -f Docker/cloud-vm-docker.Dockerfile -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .

@@ -37,7 +37,7 @@ func init() {
 
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
-	viper.SetEnvPrefix("CTZZ")
+	viper.SetEnvPrefix("CVD")
 	viper.BindPFlag(settings.FlagProject, rootCmd.PersistentFlags().Lookup(settings.FlagProject))
 	viper.BindPFlag(settings.FlagRegion, rootCmd.PersistentFlags().Lookup(settings.FlagRegion))
 	viper.BindPFlag(settings.FlagZone, rootCmd.PersistentFlags().Lookup(settings.FlagZone))
