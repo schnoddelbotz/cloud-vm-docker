@@ -2,10 +2,10 @@ package cloudfunctions
 
 import (
 	"context"
-	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 	"log"
 	"net/http"
 
+	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 	"github.com/schnoddelbotz/cloud-vm-docker/cmd"
 	"github.com/schnoddelbotz/cloud-vm-docker/handlers"
 )
@@ -26,10 +26,10 @@ func init() {
 	//if err != nil {
 	//	log.Fatalf("gotsfn-cfn init() failed on GetBucketHandle(): %s", err)
 	//}
+	// FIXME: Maybe have relevant google clients (compute, pubsub, dataStore) as global?
 }
 
-// CloudVMDocker handler manages secrets but also delivers web app.
-// It is deployed as single Google CloudFunction.
+// CloudVMDocker handles VMCreate, TaskStatus and TaskProgress requests
 func CloudVMDocker(w http.ResponseWriter, r *http.Request) {
 	handlers.CloudVMDocker(w, r) // , handle
 }

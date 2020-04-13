@@ -88,6 +88,7 @@ VMs
 - https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
 - https://godoc.org/google.golang.org/api/compute/v1
 - https://cloudinit.readthedocs.io/en/latest/index.html
+- https://www.freedesktop.org/software/systemd/man/systemd.service.html
 
 Operations
 
@@ -98,8 +99,13 @@ Operations
 - have some monitoring dashboard web endpoint using `status` data + google monitoring/logs links ...
 - or update some google-hosted dashboard to add/remove machines as they come/run/go(history)
 - https://cloud.google.com/compute/docs/storing-retrieving-metadata --> put VM meta in DataStore / partially?
+  ```bash
+  curl -H'Metadata-Flavor:Google' "http://metadata.google.internal/computeMetadata/v1/instance/"curl -H'Metadata-Flavor:Google' "http://metadata.google.internal/computeMetadata/v1/instance/"
+  curl -H'Metadata-Flavor:Google' "http://metadata.google.internal/computeMetadata/v1/instance/attributes/user-data"
+  ```
 - let user decide on `run` whether to use HTTP endpoint or write pubsub directly
 - deployment: let user disable HTTP endpoint if not needed
 - list which commands work as 100% "drop-in" replacement for docker commands -- goal: as-much-as-possible
 - coool! can I use this for interactive containers as well? no, not yet, maybe never. you can ssh to vm though.
 - allow alternate VM disk images? custom cloud_init? custom network? labels? svcAccount (or roles to add to default)?
+- have some simple dashboard ('docker ps++') served via http cfn?

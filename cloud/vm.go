@@ -13,11 +13,7 @@ import (
 // CreateVM spins up a ComputeEngine VM instance ...
 func CreateVM(projectID, zone string, task Task, sshKeys string) (*compute.Operation, error) {
 	log.Printf("Creating VM named %s of type %s in zone %s for project %s", task.VMID, task.TaskArguments.VMType, zone, projectID)
-	ctx := context.Background()
-	computeService, err := compute.NewService(ctx)
-	if err != nil {
-		return nil, err
-	}
+	computeService, ctx := NewComputeService()
 
 	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s", zone, task.TaskArguments.VMType)
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + projectID
@@ -34,11 +30,7 @@ func CreateVM(projectID, zone string, task Task, sshKeys string) (*compute.Opera
 // WaitForOperation guess what
 func WaitForOperation(project, zone, operation string) {
 	log.Printf("Waiting for operation %s in zone %s project %s", operation, zone, project)
-	ctx := context.Background()
-	computeService, err := compute.NewService(ctx)
-	if err != nil {
-		log.Fatalf("Failed to create compute client. Should have re-used anyway (FIXME)")
-	}
+	computeService, _ := NewComputeService()
 	// todo: add max / timeout
 	time.Sleep(1 * time.Second)
 	waited := 1
@@ -58,6 +50,16 @@ func WaitForOperation(project, zone, operation string) {
 		waited++
 	}
 
+}
+
+// NewComputeService returns a compute service client and its context; fatally fails on error
+func NewComputeService() (*compute.Service, context.Context) {
+	ctx := context.Background()
+	computeService, err := compute.NewService(ctx)
+	if err != nil {
+		log.Fatalf("Failed to create compute client. Should have re-used anyway (FIXME)")
+	}
+	return computeService, ctx
 }
 
 func buildInstanceInsertionRequest(instanceName, machineTypeFQDN, prefix, sshKeys, cloudInit string) *compute.Instance {
@@ -116,11 +118,7 @@ func buildInstanceInsertionRequest(instanceName, machineTypeFQDN, prefix, sshKey
 }
 
 func getCOSImageLink() string {
-	ctx := context.Background()
-	computeService, err := compute.NewService(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
+	computeService, _ := NewComputeService()
 	image, err := computeService.Images.GetFromFamily("cos-cloud", "cos-stable").Do()
 	if err != nil {
 		log.Fatal(err)
@@ -135,8 +133,7 @@ func buildCloudInit(project, cfnRegion, image string, command []string) string {
 	// should use task as first arg?
 	// should quote all command parts
 	myCommand := strings.Join(command, " ")
-	return fmt.Sprintf(`
-#cloud-config
+	return fmt.Sprintf(`#cloud-config
 users:
 - name: cloudservice
   uid: 2000

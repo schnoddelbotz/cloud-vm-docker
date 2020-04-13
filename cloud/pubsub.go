@@ -23,11 +23,7 @@ func PubSubPushTask(task *TaskArguments, projectID, topicID string) error {
 	log.Printf("  image  : %s", task.Image)
 	log.Printf("  command: %q", task.Command)
 	log.Printf("  vm_type: %s", task.VMType)
-	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, projectID)
-	if err != nil {
-		return fmt.Errorf("pubsub.NewClient: %v", err)
-	}
+	client, ctx := NewPubSubClient(projectID)
 	data, _ := json.Marshal(task)
 	m := pubsub.Message{
 		Data:        data,
@@ -41,14 +37,19 @@ func PubSubPushTask(task *TaskArguments, projectID, topicID string) error {
 	return nil
 }
 
-func createPubSubTopic(projectID, topicID string) error {
-	log.Printf("Creating pubsub topic '%s' in project %s ...", topicID, projectID)
+// NewPubSubClient returns client and its context, exits fatally on error
+func NewPubSubClient(projectID string) (*pubsub.Client, context.Context) {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf("pubsub.NewClient: %v", err)
+		log.Fatalf("pubsub.NewClient: %v", err)
 	}
+	return client, ctx
+}
 
+func createPubSubTopic(projectID, topicID string) error {
+	log.Printf("Creating pubsub topic '%s' in project %s ...", topicID, projectID)
+	client, ctx := NewPubSubClient(projectID)
 	t, err := client.CreateTopic(ctx, topicID)
 	if err != nil {
 		return fmt.Errorf("CreateTopic: %v", err)
@@ -59,11 +60,7 @@ func createPubSubTopic(projectID, topicID string) error {
 
 func deletePubSubTopic(projectID, topicID string) error {
 	log.Printf("Deleting pubsub topic '%s' in project %s ... huh, dunno how, FXIME!", topicID, projectID)
-	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, projectID)
-	if err != nil {
-		return fmt.Errorf("pubsub.NewClient: %v", err)
-	}
+	client, ctx := NewPubSubClient(projectID)
 	topic := client.Topic(topicID)
 	return topic.Delete(ctx)
 }

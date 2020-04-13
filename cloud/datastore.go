@@ -22,12 +22,7 @@ import (
 // It is called by PubSubFn for each message received.
 // Note that just storing a task does nothing; the pubsubtrigger is supposed to spin up the VM for the Task.
 func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, projectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-
+	client, ctx := NewDataStoreClient(projectID)
 	// Sets the name/ID for the new entity. // DocumentName / ID
 	name := generateVMID()
 	taskKey := datastore.NameKey(settings.FireStoreCollection, name, nil)
@@ -50,14 +45,12 @@ func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 
 // ListTasks provides 'docker ps' functionality by querying DataStore
 func ListTasks(projectID string) {
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, projectID)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
+	client, ctx := NewDataStoreClient(projectID)
 	docList := make([]Task, 0)
+
+	// todo: add filter (-a arg), sorting, FIX CREATED OUTPUT
 	q := datastore.NewQuery(settings.FireStoreCollection)
-	_, err = client.GetAll(ctx, q, &docList)
+	_, err := client.GetAll(ctx, q, &docList)
 	if err != nil {
 		log.Fatalf("Failed to list: %v", err)
 	}
@@ -73,6 +66,16 @@ func ListTasks(projectID string) {
 	}
 
 	// log.Printf("Got %d tasks as response, showed X, 3 running, 2 deleted.", len(something = client.GetAll retval))
+}
+
+// NewDataStoreClient returns a dataStore client and its context, exits fatally on error
+func NewDataStoreClient(projectID string) (*datastore.Client, context.Context) {
+	ctx := context.Background()
+	client, err := datastore.NewClient(ctx, projectID)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+	return client, ctx
 }
 
 func generateTaskName(task TaskArguments) string {
