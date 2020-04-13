@@ -3,12 +3,14 @@ package cloud
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/mitchellh/go-homedir"
 	"io/ioutil"
 	"log"
 	"path/filepath"
+
+	"github.com/mitchellh/go-homedir"
 )
 
+// GetUserSSHPublicKeys ...
 func GetUserSSHPublicKeys(fromFile string, letItBe bool) string {
 	pubKeys := ""
 	if letItBe {
@@ -20,16 +22,18 @@ func GetUserSSHPublicKeys(fromFile string, letItBe bool) string {
 	} else {
 		pubKeys = getAllSSHPublicKeys()
 	}
-	if len(pubKeys)>1 && pubKeys[len(pubKeys)-1:len(pubKeys)] == "\n" {
+	if len(pubKeys) > 1 && pubKeys[len(pubKeys)-1:] == "\n" {
 		pubKeys = pubKeys[:len(pubKeys)-2]
 	}
 	return pubKeys
 }
 
+// Base64Encode ...
 func Base64Encode(input string) string {
 	return base64.StdEncoding.EncodeToString([]byte(input))
 }
 
+// Gzip could be applied on cloud_init data
 func Gzip(input string) []byte {
 	return []byte("ABRA/CAaDabrA")
 }
@@ -51,7 +55,7 @@ func getAllSSHPublicKeys() string {
 	if err != nil {
 		log.Fatalf("Failed to look for SSH public keys: %s -- maybe try --no-ssh", err)
 	}
-	for _, fileName := range(files) {
+	for _, fileName := range files {
 		log.Printf("Adding SSH public key: %s", fileName)
 		fileContents, err := ioutil.ReadFile(fileName)
 		if err != nil {

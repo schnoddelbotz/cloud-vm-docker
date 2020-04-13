@@ -10,13 +10,7 @@ import (
 	"google.golang.org/api/compute/v1"
 )
 
-// https://github.com/googleapis/google-api-go-client/blob/master/examples/compute.go
-// https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
-// https://godoc.org/google.golang.org/api/compute/v1
-
 // CreateVM spins up a ComputeEngine VM instance ...
-// fixme: this should receive a task ...
-//func CreateVM(projectID, zone, vmType, instanceName string) {
 func CreateVM(projectID, zone string, task Task, sshKeys string) (*compute.Operation, error) {
 	log.Printf("Creating VM named %s of type %s in zone %s for project %s", task.VMID, task.TaskArguments.VMType, zone, projectID)
 	ctx := context.Background()
@@ -25,7 +19,6 @@ func CreateVM(projectID, zone string, task Task, sshKeys string) (*compute.Opera
 		return nil, err
 	}
 
-	// https://cloud.google.com/compute/docs/regions-zones#available
 	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s", zone, task.TaskArguments.VMType)
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + projectID
 	cloudInit := buildCloudInit(projectID, "cfnRegion", task.TaskArguments.Image, task.TaskArguments.Command)
@@ -35,15 +28,10 @@ func CreateVM(projectID, zone string, task Task, sshKeys string) (*compute.Opera
 		return nil, err
 	}
 
-	// todo: if wait, then
-	// https://github.com/googleapis/google-api-go-client/blob/master/examples/operation_progress.go
-
-	// TODO: Change code below to process the `resp` object:
-	// FIXME : OR JUST RETURN IT! or just SelfLink to operation
-	// fmt.Printf("OK RESPONSE:\n%#v\n", resp)
 	return resp, nil
 }
 
+// WaitForOperation guess what
 func WaitForOperation(project, zone, operation string) {
 	log.Printf("Waiting for operation %s in zone %s project %s", operation, zone, project)
 	ctx := context.Background()
@@ -52,7 +40,7 @@ func WaitForOperation(project, zone, operation string) {
 		log.Fatalf("Failed to create compute client. Should have re-used anyway (FIXME)")
 	}
 	// todo: add max / timeout
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 	waited := 1
 	for {
 		result, err := computeService.ZoneOperations.Get(project, zone, operation).Do()
@@ -63,17 +51,17 @@ func WaitForOperation(project, zone, operation string) {
 			log.Printf("FINALLY ... found DONE status after %d seconds", waited)
 			return
 		}
-		if waited % 10 == 0 {
+		if waited%10 == 0 {
 			log.Printf("Already waited %d seconds ...", waited)
 		}
-		time.Sleep(1*time.Second)
-		waited += 1
+		time.Sleep(1 * time.Second)
+		waited++
 	}
 
 }
 
-func buildInstanceInsertionRequest(instanceName, machineTypeFQDN, prefix, sshKeys, cloud_init string) *compute.Instance {
-	true_string := "true"
+func buildInstanceInsertionRequest(instanceName, machineTypeFQDN, prefix, sshKeys, cloudInit string) *compute.Instance {
+	trueString := "true"
 	return &compute.Instance{
 		Name:        instanceName,
 		MachineType: machineTypeFQDN,
@@ -83,7 +71,7 @@ func buildInstanceInsertionRequest(instanceName, machineTypeFQDN, prefix, sshKey
 				Boot:       true,
 				Type:       "PERSISTENT",
 				InitializeParams: &compute.AttachedDiskInitializeParams{
-					DiskName:    "my-root-pd-"+instanceName,
+					DiskName:    "my-root-pd-" + instanceName,
 					SourceImage: getCOSImageLink(),
 				},
 			},
@@ -109,18 +97,18 @@ func buildInstanceInsertionRequest(instanceName, machineTypeFQDN, prefix, sshKey
 			},
 		},
 		Metadata: &compute.Metadata{
-			Items:           []*compute.MetadataItems{
+			Items: []*compute.MetadataItems{
 				{
-					Key: "ssh-keys",
+					Key:   "ssh-keys",
 					Value: &sshKeys,
 				},
 				{
-					Key: "google-logging-enabled",
-					Value: &true_string,
+					Key:   "google-logging-enabled",
+					Value: &trueString,
 				},
 				{
-					Key: "user-data",
-					Value: &cloud_init,
+					Key:   "user-data",
+					Value: &cloudInit,
 				},
 			},
 		},
@@ -146,7 +134,7 @@ func buildCloudInit(project, cfnRegion, image string, command []string) string {
 	// should set vm shutdown token
 	// should use task as first arg?
 	// should quote all command parts
-	my_command := strings.Join(command, " ")
+	myCommand := strings.Join(command, " ")
 	return fmt.Sprintf(`
 #cloud-config
 users:
@@ -180,5 +168,5 @@ runcmd:
 - docker-credential-gcr configure-docker
 - systemctl daemon-reload
 - systemctl start cloudservice.service
-`, project, cfnRegion, image, my_command)
+`, project, cfnRegion, image, myCommand)
 }

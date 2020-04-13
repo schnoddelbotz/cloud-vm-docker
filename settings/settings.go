@@ -32,7 +32,7 @@ const (
 
 	// FlagSSHPublicKey can be deployed on VM instance
 	FlagSSHPublicKey = "ssh-public-key"
-	// FlagNoSSH
+	// FlagNoSSH disables inclusion of local user's SSH public keys in cloudInit
 	FlagNoSSH = "no-ssh"
 
 	// ActionSubmit ...
