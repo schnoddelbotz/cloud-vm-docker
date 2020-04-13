@@ -9,7 +9,7 @@ import (
 func CloudVMDocker(w http.ResponseWriter, r *http.Request, env *Environment) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"foo":"bar"}`))
-	log.Printf("Got request ... my env proj: %v", env.GoogleSettings.ProjectID)
+	log.Printf("Got request ... %s -> %s", env.GoogleSettings.ProjectID, r.RequestURI)
 	// TODO:
 	// This should become an HTTP entrypoint for exposing cloud-vm-docker functionality via simple JSON api.
 	// While using cloud-vm-docker is obviously the most simple/direct approach to submit tasks or

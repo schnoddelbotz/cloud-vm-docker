@@ -10,8 +10,8 @@ type Task struct {
 	Status string
 	// VMID holds name of VM
 	VMID string
-	// ShutdownToken is known to VM itself, so it can request clean self-destruction
-	ShutdownToken string
+	// ManagementToken is known to VM itself, so it can request clean self-destruction
+	ManagementToken string
 	// CreatedAt ...
 	CreatedAt time.Time
 	// SSHPubKeys string holding one or more \n-separated ssh pubkeys

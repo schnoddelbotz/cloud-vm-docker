@@ -24,11 +24,11 @@ func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 	// Sets the name/ID for the new entity. // DocumentName / ID
 	taskKey := datastore.NameKey(settings.FireStoreCollection, taskArguments.VMID, nil)
 	doc := Task{
-		Status:        TaskStatusCreated,
-		TaskArguments: taskArguments,
-		VMID:          taskArguments.VMID, // dup! also doc title now ...
-		CreatedAt:     time.Now(),
-		ShutdownToken: generateShutdownToken(),
+		Status:          TaskStatusCreated,
+		TaskArguments:   taskArguments,
+		VMID:            taskArguments.VMID, // dup! also doc title now ...
+		CreatedAt:       time.Now(),
+		ManagementToken: generateManagementToken(),
 	}
 
 	// Saves the new entity.
@@ -91,7 +91,7 @@ func generateVMID() string {
 	return fmt.Sprintf("t%x", b[0:5])
 }
 
-func generateShutdownToken() string {
+func generateManagementToken() string {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
 	if err != nil {

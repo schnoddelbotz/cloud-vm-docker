@@ -77,6 +77,7 @@ func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *comput
 				AutoDelete: true,
 				Boot:       true,
 				Type:       "PERSISTENT",
+				// FIXME: make disk size and type a user choice
 				InitializeParams: &compute.AttachedDiskInitializeParams{
 					DiskName:    "my-root-pd-" + task.VMID, // watch out! DiskName must be unique in project
 					SourceImage: getCOSImageLink(),
@@ -96,7 +97,7 @@ func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *comput
 		},
 		ServiceAccounts: []*compute.ServiceAccount{
 			{
-				Email: "default",
+				Email: "default", // FIXME make overridable
 				Scopes: []string{
 					compute.DevstorageFullControlScope,
 					compute.ComputeScope,
@@ -152,35 +153,47 @@ write_files:
     [Service]
     User=cloudservice
     Restart=no
-    Environment="HOME=/home/cloudservice"
+    Environment="HOME=/home/cloudservice" "MGMT_TOKEN={{.Task.ManagementToken}}" "CVD_CFN_URL={{.ManagementURL}}" "CVD_VM_ID={{.Task.VMID}}"
     ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
+    ExecStartPre=/usr/bin/curl -H"X-Authorization: $MGMT_TOKEN" ${CVD_CFN_URL}/status/${CVD_VM_ID}/BOOTED
     ExecStart=/usr/bin/docker run --rm \
         -v/var/run/docker.sock:/var/run/docker.sock \
         -v/home/cloudservice/.docker/config.json:/home/cloudservice/.docker/config.json \
-        -eGCP_PROJECT={{.Google.ProjectID}} -eGCP_REGION={{.Google.Region}} --name=cloud-vm-docker \
-		{{.Task.TaskArguments.Image}} {{.QuotedCommand}}
+        -eGCP_PROJECT={{.Google.ProjectID}} -eGCP_REGION={{.Google.Region}} \
+        -eMGMT_TOKEN -eCVD_CFN_URL -eCVD_VM_ID \
+        --name=cloud-vm-docker \
+        {{.Task.TaskArguments.Image}} {{.QuotedCommand}}
     ExecStop=/usr/bin/docker stop cloud-vm-docker
-    ExecStopPost=/usr/bin/docker rm cloud-vm-docker
+    ExecStopPost=/usr/bin/curl -H"X-Authorization: $MGMT_TOKEN" ${CVD_CFN_URL}/delete/${CVD_VM_ID} 
 
 runcmd:
 - usermod -aG docker cloudservice
 - docker-credential-gcr configure-docker
 - systemctl daemon-reload
 - systemctl start cloudservice.service
-`
-	// cloud-vm-docker task-vm create busybox sh -c 'sleep 3600'
-	// --> busybox "sh" "-c" "sleep 3600"
-	quotedCommand := ""
-	if len(task.TaskArguments.Command) > 0 {
-		quotedCommand = strings.Trim(fmt.Sprintf("%q", task.TaskArguments.Command), "[]")
-	}
+` // ATTN: Extra-careful to not put whitespace after \ for line concat above!
+
+	// FIXME!!! There should be:
+	// ExecStopPost=shutdown -h now ... as safety net
+	// But then [Service] must run as root.
+
 	type TemplateData struct {
 		Google        settings.GoogleSettings
 		Task          Task
 		QuotedCommand string
+		ManagementURL string
 	}
-	templateData := TemplateData{Google: g, Task: task, QuotedCommand: quotedCommand}
+
+	quotedCommand := ""
+	if len(task.TaskArguments.Command) > 0 {
+		// cloud-vm-docker task-vm create busybox sh -c 'sleep 3600'
+		// --> busybox "sh" "-c" "sleep 3600"
+		quotedCommand = strings.Trim(fmt.Sprintf("%q", task.TaskArguments.Command), "[]")
+	}
+	managementURL := fmt.Sprintf("https://%s-%s.cloudfunctions.net/CloudVMDocker", g.Region, g.ProjectID)
+	templateData := TemplateData{Google: g, Task: task, QuotedCommand: quotedCommand, ManagementURL: managementURL}
 	t := template.Must(template.New("cloud-init").Parse(tpl))
+
 	var result bytes.Buffer
 	err := t.Execute(&result, templateData)
 
