@@ -96,6 +96,7 @@ Operations
 
 ## TODO
 
+- tests, tests, tests
 - have some monitoring dashboard web endpoint using `status` data + google monitoring/logs links ...
 - or update some google-hosted dashboard to add/remove machines as they come/run/go(history)
 - https://cloud.google.com/compute/docs/storing-retrieving-metadata --> put VM meta in DataStore / partially?

@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 
+	//"github.com/schnoddelbotz/cloud-vm-docker/handlers"
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
@@ -42,6 +43,29 @@ func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 	log.Printf("Saved %v: %v\n", taskKey, doc.Status)
 	return doc
 }
+
+//
+//func (e *handlers.Environment) StoreTask(taskArguments TaskArguments) Task {
+//	log.Printf("Using %s", e)
+//	// Sets the name/ID for the new entity. // DocumentName / ID
+//	name := generateVMID()
+//	taskKey := datastore.NameKey(settings.FireStoreCollection, name, nil)
+//	doc := Task{
+//		Status:        TaskStatusCreated,
+//		TaskArguments: taskArguments,
+//		VMID:          name, // dup! also doc title now ...
+//		CreatedAt:     time.Now(),
+//		ShutdownToken: generateShutdownToken(),
+//	}
+//
+//	// Saves the new entity.
+//	if _, err := client.Put(ctx, taskKey, &doc); err != nil {
+//		log.Fatalf("Failed to save doc: %v", err)
+//	}
+//
+//	log.Printf("Saved %v: %v\n", taskKey, doc.Status)
+//	return doc
+//}
 
 // ListTasks provides 'docker ps' functionality by querying DataStore
 func ListTasks(projectID string) {

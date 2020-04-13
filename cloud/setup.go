@@ -6,11 +6,10 @@ import (
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
-// Setup creates necessary GoogleCloud infra for cloud-vm-docker operations
+// Setup creates necessary GoogleCloud infra for cloud-vm-docker operations --- NOT USABLE YET
 func Setup(projectID string) {
 	log.Print("SETTING UP infrastructure for cloud-vm-docker ...")
 	bailOnError(createPubSubTopic(projectID, settings.TopicNameTaskQueue), "creating task queue")
-	bailOnError(createPubSubTopic(projectID, settings.TopicNameStatusQueue), "creating status queue")
 	log.Print("SUCCESS setting up cloud-vm-docker cloud infra. Have fun!")
 }
 
@@ -18,7 +17,6 @@ func Setup(projectID string) {
 func Destroy(projectID string) {
 	log.Print("DESTROYING infrastructure for cloud-vm-docker ...")
 	bailOnError(deletePubSubTopic(projectID, settings.TopicNameTaskQueue), "deleting task queue")
-	bailOnError(deletePubSubTopic(projectID, settings.TopicNameStatusQueue), "deleting status queue")
 	log.Print("SUCCESS destroying cloud-vm-docker cloud infra. Have fun!")
 }
 

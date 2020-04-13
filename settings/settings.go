@@ -1,19 +1,21 @@
 package settings
 
-// Settings configure a CLI or CloudFunction cloud-vm-docker instance
-type Settings struct {
-	NoOutput  bool
-	RawOutput bool
-	Provider  string
-	File      string
-	Server    string
-	Google    GoogleCloudSettings
-}
+import "github.com/spf13/viper"
 
-// GoogleCloudSettings define anything Google related (project, service account, ...)
-type GoogleCloudSettings struct {
-	ProjectID           string
+// GoogleSettings define anything Google related (project, service account, ...)
+type GoogleSettings struct {
+	ProjectID string
+
+	Zone   string
+	Region string
+
+	VMType                     string
+	SSHPublicKey               string
+	EnableSSH                  bool
+	VMPostDockerRunTargetState string // should become: SHUTDOWN | DELETE | KEEP
+
 	DataStoreCollection string
+	TaskPubSubTopic     string
 }
 
 const (
@@ -35,18 +37,25 @@ const (
 	// FlagNoSSH disables inclusion of local user's SSH public keys in cloudInit
 	FlagNoSSH = "no-ssh"
 
-	// ActionSubmit ...
-	ActionSubmit = "submit"
-	// ActionWait ...
-	ActionWait = "wait"
-	// ActionKill ...
-	ActionKill = "kill"
-
 	// FireStoreCollection is the name of our firestore collection
 	FireStoreCollection = "cloud-vm-docker-task"
 
 	// TopicNameTaskQueue .. tbd: option/flag
 	TopicNameTaskQueue = "cloud-vm-docker-task-queue"
-	// TopicNameStatusQueue ...
-	TopicNameStatusQueue = "cloud-vm-docker-status-queue"
 )
+
+// EnvironmentToGoogleSettings translates environment variables into a GoogleSettings struct.
+func EnvironmentToGoogleSettings() GoogleSettings {
+	s := GoogleSettings{
+		ProjectID:                  viper.GetString(FlagProject),
+		Zone:                       viper.GetString(FlagZone),
+		Region:                     viper.GetString(FlagRegion),
+		VMType:                     viper.GetString(FlagVMType),
+		SSHPublicKey:               viper.GetString(FlagSSHPublicKey),
+		EnableSSH:                  true,                // fixme
+		VMPostDockerRunTargetState: "",                  // notyet
+		DataStoreCollection:        FireStoreCollection, // fixme: static for now
+		TaskPubSubTopic:            TopicNameTaskQueue,  // fixme: static for now
+	}
+	return s
+}

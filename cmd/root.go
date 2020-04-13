@@ -11,6 +11,9 @@ import (
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
+// AppVersion is set at compile time via make / ldflags
+var AppVersion = "0.0.x-dev"
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "cloud-vm-docker",

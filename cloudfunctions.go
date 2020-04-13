@@ -8,17 +8,22 @@ import (
 	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 	"github.com/schnoddelbotz/cloud-vm-docker/cmd"
 	"github.com/schnoddelbotz/cloud-vm-docker/handlers"
+	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
+
+var runtimeEnvironment *handlers.Environment
 
 func init() {
 	//var err error
-	settings := cmd.EnvironmentToSettings()
+	googleSettings := settings.EnvironmentToGoogleSettings()
 
 	// gcloud / stackdriver logs have own timestamps, so drop Go's
 	log.SetFlags(0)
-	log.Printf("gotsfn %s package gotsfn-cfn init() with settings: %v",
-		cmd.AppVersion, settings)
+	log.Printf("gotsfn %s package gotsfn-cfn init() with google settings from env: %v",
+		cmd.AppVersion, googleSettings)
 
+	runtimeEnvironment = handlers.NewEnvironment(googleSettings, true, true, true)
+	log.Printf("Initialized runtime env: %v", runtimeEnvironment)
 	// Google CloudFunction Go runtime requires us to use globals to share
 	// resources between requests -- here: our bucket handle ...
 	// https://cloud.google.com/functions/docs/concepts/go-runtime
@@ -36,5 +41,5 @@ func CloudVMDocker(w http.ResponseWriter, r *http.Request) {
 
 // CloudVMDockerProcessor consumes a Pub/Sub message.
 func CloudVMDockerProcessor(ctx context.Context, m cloud.PubSubMessage) error {
-	return handlers.CloudVMDockerProcessor(ctx, m)
+	return handlers.CloudVMDockerProcessor(ctx, m, runtimeEnvironment)
 }

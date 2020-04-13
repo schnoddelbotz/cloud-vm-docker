@@ -18,29 +18,28 @@ var createCmd = &cobra.Command{
 	// Does the same like run, but circumvents pubsub; creates DataStore entry and spins up VM
 	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		projectID := viper.GetString(settings.FlagProject)
-		zone := viper.GetString(settings.FlagZone)
+		g := settings.EnvironmentToGoogleSettings()
+		//e := handlers.NewEnvironment(g, false, true, true)
+
 		image := args[0]
 		var command []string
 		if len(args) > 1 {
 			command = args[1:]
 		}
-		taskArguments := cloud.NewCloudTaskArgsFromArgs(image,
-			command,
+		taskArguments := cloud.NewCloudTaskArgsFromArgs(image, command,
 			viper.GetString(settings.FlagEntryPoint), // FIXME!!! UNUSED!!!
-			viper.GetString(settings.FlagVMType))
-		sshKeys := cloud.GetUserSSHPublicKeys(viper.GetString(settings.FlagSSHPublicKey),
-			viper.GetBool(settings.FlagNoSSH))
+			g.VMType)
+		sshKeys := cloud.GetUserSSHPublicKeys(g.SSHPublicKey, g.EnableSSH)
 
 		log.Printf("Writing task to DataStore: %+v", taskArguments)
-		task := cloud.StoreNewTask(projectID, *taskArguments)
+		task := cloud.StoreNewTask(g.ProjectID, *taskArguments)
 
-		createOp, err := cloud.CreateVM(projectID, zone, task, sshKeys)
+		createOp, err := cloud.CreateVM(g.ProjectID, g.Zone, task, sshKeys)
 		if err != nil {
 			return fmt.Errorf("ERROR running TaskArguments: %v", err)
 		}
 		log.Println("VM creation requested successfully")
-		cloud.WaitForOperation(projectID, zone, createOp.Name)
+		cloud.WaitForOperation(g.ProjectID, g.Zone, createOp.Name)
 		// TODO: Now print('ssh cloud-vm-docker@IP')
 		// https://cloud.google.com/compute/docs/instances/view-ip-address
 		// log.Printf("Use ssh cloud-vm-docker@%s to connect", GetInstanceIP(Name))
