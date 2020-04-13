@@ -23,11 +23,11 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 		if len(args) > 1 {
 			command = args[1:]
 		}
-
-		taskArguments := cloud.NewCloudTaskArgsFromArgs(image,
+		g := settings.EnvironmentToGoogleSettings()
+		taskArguments := cloud.NewTaskArgumentsFromArgs(image,
 			command,
 			viper.GetString(settings.FlagEntryPoint),
-			viper.GetString(settings.FlagVMType))
+			g.VMType)
 		err := cloud.PubSubPushTask(taskArguments, viper.GetString(settings.FlagProject), settings.TopicNameTaskQueue)
 		if err != nil {
 			return fmt.Errorf("ERROR running TaskArguments: %v", err)

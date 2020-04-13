@@ -10,8 +10,6 @@ import (
 	"cloud.google.com/go/pubsub"
 )
 
-// https://github.com/GoogleCloudPlatform/golang-samples/blob/master/appengine_flexible/pubsub/pubsub.go
-
 // PubSubMessage is the payload of a Pub/Sub event.
 type PubSubMessage struct {
 	Data []byte `json:"data"`

@@ -9,7 +9,7 @@ import (
 
 // CloudVMDockerProcessor consumes a Pub/Sub message.
 func CloudVMDockerProcessor(_ context.Context, m cloud.PubSubMessage, runtimeEnvironment *Environment) error {
-	task := cloud.NewCloudTaskArgsFromBytes(m.Data)
+	task := cloud.NewTaskArgumentsFromBytes(m.Data)
 	g := runtimeEnvironment.GoogleSettings
 	log.Printf("TASK: project='%s' image='%s' command=%q vmtype='%s'!", g.ProjectID, task.Image, task.Command, task.VMType)
 	cloud.StoreNewTask(g.ProjectID, *task)

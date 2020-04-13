@@ -35,6 +35,8 @@ const (
 	FlagRegion = "region"
 	// FlagDetached sets dockers -d flag
 	FlagDetached = "detached"
+	// FlagEntrypoint IS NOT USED YET
+	FlagEntrypoint = "entrypoint"
 
 	// FlagSSHPublicKey can be deployed on VM instance
 	FlagSSHPublicKey = "ssh-public-key"

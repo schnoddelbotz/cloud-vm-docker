@@ -33,7 +33,7 @@ func Base64Encode(input string) string {
 	return base64.StdEncoding.EncodeToString([]byte(input))
 }
 
-// Gzip could be applied on cloud_init data
+// Gzip could be applied on cloud_init data, then Base64 encoded, see README.md->readthedocs/cloud_init
 func Gzip(input string) []byte {
 	return []byte("ABRA/CAaDabrA")
 }
@@ -47,6 +47,8 @@ func getSSHKeyFromFile(fileName string) string {
 }
 
 func getAllSSHPublicKeys() string {
+	// FIXME BUG. expected format is: user:<PUBKEY>\n user:<PUBKEY>
+	// so ... must pick a single pubkey, as using same username multiple times will not work? verify!
 	keys := ""
 	baseDirectory, _ := homedir.Dir()
 	scanDirGlob := fmt.Sprintf("%s/%s/*.pub", baseDirectory, ".ssh")

@@ -26,7 +26,7 @@ var createCmd = &cobra.Command{
 		if len(args) > 1 {
 			command = args[1:]
 		}
-		taskArguments := cloud.NewCloudTaskArgsFromArgs(image, command,
+		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
 			viper.GetString(settings.FlagEntryPoint), // FIXME!!! UNUSED!!!
 			g.VMType)
 		sshKeys := cloud.GetUserSSHPublicKeys(g.SSHPublicKey, g.EnableSSH)

@@ -14,8 +14,8 @@ type TaskArguments struct {
 	VMID       string // we must pass this in upon creation request ... as async pubsub would not tell us
 }
 
-// NewCloudTaskArgsFromArgs returns a new TaskArguments based on CLI args
-func NewCloudTaskArgsFromArgs(image string, command []string, entryPoint string, vmType string) *TaskArguments {
+// NewTaskArgumentsFromArgs returns a new TaskArguments based on CLI args
+func NewTaskArgumentsFromArgs(image string, command []string, entryPoint string, vmType string) *TaskArguments {
 	vmID := generateVMID()
 	return &TaskArguments{
 		Image:      image,
@@ -26,8 +26,8 @@ func NewCloudTaskArgsFromArgs(image string, command []string, entryPoint string,
 	}
 }
 
-// NewCloudTaskArgsFromBytes returns a new TaskArguments based on a (pubsub) JSON message
-func NewCloudTaskArgsFromBytes(data []byte) *TaskArguments {
+// NewTaskArgumentsFromBytes returns a new TaskArguments based on a (pubsub) JSON message
+func NewTaskArgumentsFromBytes(data []byte) *TaskArguments {
 	task := TaskArguments{}
 	err := json.Unmarshal(data, &task)
 	if err != nil {

@@ -88,6 +88,8 @@ make gcp_deploy
 
 ## links
 
+Google Cloud general
+
 - https://cloud.google.com/compute/docs/regions-zones#available
 
 VMs
@@ -97,6 +99,15 @@ VMs
 - https://godoc.org/google.golang.org/api/compute/v1
 - https://cloudinit.readthedocs.io/en/latest/index.html
 - https://www.freedesktop.org/software/systemd/man/systemd.service.html
+
+DataStore
+
+- https://cloud.google.com/datastore/docs/reference/libraries
+- https://cloud.google.com/datastore/docs/concepts/queries
+
+PubSub
+
+- https://github.com/GoogleCloudPlatform/golang-samples/blob/master/appengine_flexible/pubsub/pubsub.go
 
 Operations
 
