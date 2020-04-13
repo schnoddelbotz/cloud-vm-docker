@@ -171,9 +171,9 @@ write_files:
     ExecStart=/usr/bin/docker run --rm \
         -v/var/run/docker.sock:/var/run/docker.sock \
         -v/home/cloudservice/.docker/config.json:/home/cloudservice/.docker/config.json \
-        -eGCP_PROJECT=%s -eGCP_REGION=%s --name=ctzz %s %s
-    ExecStop=/usr/bin/docker stop ctzz
-    ExecStopPost=/usr/bin/docker rm ctzz
+        -eGCP_PROJECT=%s -eGCP_REGION=%s --name=cloud-vm-docker %s %s
+    ExecStop=/usr/bin/docker stop cloud-vm-docker
+    ExecStopPost=/usr/bin/docker rm cloud-vm-docker
 
 runcmd:
 - usermod -aG docker cloudservice

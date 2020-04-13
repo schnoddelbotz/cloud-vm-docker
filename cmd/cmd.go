@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
+	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
 // AppVersion is set at compile time via make / ldflags

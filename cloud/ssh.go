@@ -39,7 +39,7 @@ func getSSHKeyFromFile(fileName string) string {
 	if err != nil {
 		log.Fatalf("Failed reading SSH public key %s: %s", fileName, err)
 	}
-	return "ctzz:" + string(fileContents)
+	return "cloud-vm-docker:" + string(fileContents)
 }
 
 func getAllSSHPublicKeys() string {
@@ -57,7 +57,7 @@ func getAllSSHPublicKeys() string {
 		if err != nil {
 			log.Fatalf("Failed reading SSH public key %s: %s", fileName, err)
 		}
-		keys += "ctzz:" + string(fileContents) + "\n"
+		keys += "cloud-vm-docker:" + string(fileContents) + "\n"
 	}
 	return keys
 }

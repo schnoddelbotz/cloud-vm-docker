@@ -2,12 +2,12 @@ package cloudfunctions
 
 import (
 	"context"
-	"github.com/schnoddelbotz/cloud-task-zip-zap/cloud"
+	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 	"log"
 	"net/http"
 
-	"github.com/schnoddelbotz/cloud-task-zip-zap/cmd"
-	"github.com/schnoddelbotz/cloud-task-zip-zap/handlers"
+	"github.com/schnoddelbotz/cloud-vm-docker/cmd"
+	"github.com/schnoddelbotz/cloud-vm-docker/handlers"
 )
 
 func init() {

@@ -1,9 +1,9 @@
 
-BINARY := ctzz
+BINARY := cloud-vm-docker
 
 VERSION := $(shell git describe --tags | cut -dv -f2)
-DOCKER_IMAGE := schnoddelbotz/cloud-task-zip-zap
-LDFLAGS := -X github.com/schnoddelbotz/cloud-task-zip-zap/cmd.AppVersion=$(VERSION) -w
+DOCKER_IMAGE := schnoddelbotz/cloud-vm-docker
+LDFLAGS := -X github.com/schnoddelbotz/cloud-vm-docker/cmd.AppVersion=$(VERSION) -w
 
 GO_SOURCES := */*.go */*/*.go */*/*/*.go
 
@@ -11,7 +11,7 @@ GO_SOURCES := */*.go */*/*.go */*/*/*.go
 build: $(BINARY)
 
 $(BINARY): $(GO_SOURCES)
-	# building cloud-task-zip-zap
+	# building cloud-vm-docker
 	go build -v -o $(BINARY) -ldflags='-w -s $(LDFLAGS)' ./cli/main.go
 
 all_local: clean test build
@@ -38,15 +38,15 @@ deploy_gcp:
 deploy_cfn_http:
 	gcloud functions deploy CloudTaskZipZap --region=europe-west1 --runtime go113 \
  		--trigger-http --allow-unauthenticated \
- 		--set-env-vars=CTZZ_DATASTORE_COLLECTION=cloud-task-zip-zap-test
+ 		--set-env-vars=CTZZ_DATASTORE_COLLECTION=cloud-vm-docker-test
 
 deploy_cfn_pubsub:
 	gcloud functions deploy CloudTaskZipZapProcessor --region=europe-west1 --runtime go113 \
-     		--trigger-topic=ctzz-task-queue --allow-unauthenticated \
-     		--set-env-vars=CTZZ_TOPIC=ctzz-task-queue,CTZZ_PROJECT=$(CTZZ_PROJECT)
+     		--trigger-topic=cloud-vm-docker-task-queue --allow-unauthenticated \
+     		--set-env-vars=CTZZ_TOPIC=cloud-vm-docker-task-queue,CTZZ_PROJECT=$(CTZZ_PROJECT)
 
 docker_image:
-	docker build -f Docker/cloud-task-zip-zap.Dockerfile -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .
+	docker build -f Docker/cloud-vm-docker.Dockerfile -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .
 
 
 docker_image_push:

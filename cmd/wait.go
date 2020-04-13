@@ -9,7 +9,7 @@ import (
 // waitCmd represents the wait command
 var waitCmd = &cobra.Command{
 	Use:   "wait",
-	Short: "Waits for completion of a ctzz-managed task to complete",
+	Short: "Waits for completion of a cloud-vm-docker-managed task to complete",
 	Long:  `useful for pausing workflows that depend on task results`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("wait called ... should wait for one or more VMs to report COMPLETED_*")

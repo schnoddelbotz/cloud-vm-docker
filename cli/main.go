@@ -1,6 +1,6 @@
 package main
 
-import "github.com/schnoddelbotz/cloud-task-zip-zap/cmd"
+import "github.com/schnoddelbotz/cloud-vm-docker/cmd"
 
 func main() {
 	cmd.Execute()

@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/schnoddelbotz/cloud-task-zip-zap/cloud"
+	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 )
 
 // CloudTaskZipZapProcessor consumes a Pub/Sub message.

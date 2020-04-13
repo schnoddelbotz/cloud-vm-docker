@@ -8,15 +8,15 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
+	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "ctzz",
+	Use:   "cloud-vm-docker",
 	Short: "A brief description of your application",
-	Long: `ctzz (cloud-task-zip-zap) runs Docker images on Google Compute Engine VMs
-See https://github.com/schnoddelbotz/cloud-task-zip-zap`,
+	Long: `cloud-vm-docker (cloud-vm-docker) runs Docker images on Google Compute Engine VMs
+See https://github.com/schnoddelbotz/cloud-vm-docker`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

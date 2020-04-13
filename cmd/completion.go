@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/schnoddelbotz/cloud-task-zip-zap/cmd/cobrafish"
+	"github.com/schnoddelbotz/cloud-vm-docker/cmd/cobrafish"
 )
 
 func init() {
@@ -20,9 +20,9 @@ var completionCmd = &cobra.Command{
 	Use:   "completion",
 	Short: "generates shell completion scripts",
 	Long: `To enable tab-completion for gotsfn in bash:
-  eval "$(cloud-task-zip-zap completion)"
+  eval "$(cloud-vm-docker completion)"
 In fish shell:
-  cloud-task-zip-zap completion -s fish | .
+  cloud-vm-docker completion -s fish | .
 
 You can add that to your '~/.bash_profile', '~/.config/fish/config.fish' etc.
 to enable completion whenever you start a new shell.

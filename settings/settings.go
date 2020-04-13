@@ -1,6 +1,6 @@
 package settings
 
-// Settings configure a CLI or CloudFunction ctzz instance
+// Settings configure a CLI or CloudFunction cloud-vm-docker instance
 type Settings struct {
 	NoOutput  bool
 	RawOutput bool
@@ -43,10 +43,10 @@ const (
 	ActionKill = "kill"
 
 	// FireStoreCollection is the name of our firestore collection
-	FireStoreCollection = "ctzz-task"
+	FireStoreCollection = "cloud-vm-docker-task"
 
 	// TopicNameTaskQueue .. tbd: option/flag
-	TopicNameTaskQueue = "ctzz-task-queue"
+	TopicNameTaskQueue = "cloud-vm-docker-task-queue"
 	// TopicNameStatusQueue ...
-	TopicNameStatusQueue = "ctzz-status-queue"
+	TopicNameStatusQueue = "cloud-vm-docker-status-queue"
 )

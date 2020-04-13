@@ -6,13 +6,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
+	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
 // vmCmd represents the vm command
 var vmCmd = &cobra.Command{
 	Use:   "task-vm",
-	Short: "Low-level ctzz VM management (create, kill, status ...)",
+	Short: "Low-level cloud-vm-docker VM management (create, kill, status ...)",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("vm called")
 	},

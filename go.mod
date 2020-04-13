@@ -1,4 +1,4 @@
-module github.com/schnoddelbotz/cloud-task-zip-zap
+module github.com/schnoddelbotz/cloud-vm-docker
 
 go 1.14
 

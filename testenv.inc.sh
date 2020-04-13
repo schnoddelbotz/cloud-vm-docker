@@ -9,4 +9,4 @@ export CTZZ_PROJECT=hacker-playground-254920
 # https://cloud.google.com/functions/docs/env-var#nodejs_6_nodejs_8_python_37_and_go_111
 
 
-./ctzz completion -s fish | .
+./cloud-vm-docker completion -s fish | .

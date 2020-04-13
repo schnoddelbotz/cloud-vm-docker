@@ -10,7 +10,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 
-	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
+	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
 // https://cloud.google.com/datastore/docs/reference/libraries

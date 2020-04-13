@@ -6,8 +6,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/schnoddelbotz/cloud-task-zip-zap/cloud"
-	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
+	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
+	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
 // runCmd represents the run command
@@ -15,7 +15,7 @@ var runCmd = &cobra.Command{
 	Use:   "run IMAGE [COMMAND] [ARG...]",
 	Short: "run a dockerized command to be executed on a ComputeEngine VM",
 	Long: `run dockerized command on ComputeEngine VM
-Despite Usage message below, no ctzz [flags] are supported after [COMMAND] [ARG...]`,
+Despite Usage message below, no cloud-vm-docker [flags] are supported after [COMMAND] [ARG...]`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		image := args[0]

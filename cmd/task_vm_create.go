@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/schnoddelbotz/cloud-task-zip-zap/cloud"
-	"github.com/schnoddelbotz/cloud-task-zip-zap/settings"
+	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
+	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
 // createCmd represents the create command
@@ -41,9 +41,9 @@ var createCmd = &cobra.Command{
 		}
 		log.Println("VM creation requested successfully")
 		cloud.WaitForOperation(projectID, zone, createOp.Name)
-		// TODO: Now print('ssh ctzz@IP')
+		// TODO: Now print('ssh cloud-vm-docker@IP')
 		// https://cloud.google.com/compute/docs/instances/view-ip-address
-		// log.Printf("Use ssh ctzz@%s to connect", GetInstanceIP(Name))
+		// log.Printf("Use ssh cloud-vm-docker@%s to connect", GetInstanceIP(Name))
 		return nil
 	},
 }

@@ -4,7 +4,7 @@ import "time"
 
 // Task describes structure of our FireStore/DataStore documents
 type Task struct {
-	// TaskArguments hold `ctzz run` CLI arguments
+	// TaskArguments hold `cloud-vm-docker run` CLI arguments
 	TaskArguments TaskArguments
 	// Status tracks VM status
 	Status string
@@ -25,7 +25,7 @@ const (
 	TaskStatusStarted = "started"
 	// TaskStatusRunning : client optionally reports this from within container + progress / eta
 	TaskStatusRunning = "running"
-	// TaskStatusKilled : forceful `ctzz task-vm kill <VMID>`
+	// TaskStatusKilled : forceful `cloud-vm-docker task-vm kill <VMID>`
 	TaskStatusKilled = "killed"
 	// TaskStatusTerminatedFailure : container exited, code <> 0
 	TaskStatusTerminatedFailure = "completed-failure"
