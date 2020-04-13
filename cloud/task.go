@@ -14,6 +14,8 @@ type Task struct {
 	ShutdownToken string
 	// CreatedAt ...
 	CreatedAt time.Time
+	// SSHPubKeys string holding one or more \n-separated ssh pubkeys
+	SSHPubKeys string
 }
 
 const (

@@ -73,6 +73,11 @@ make gcp_deploy
 # - one PubSub monitor, that will spin up VMs as requested in PubSub messages
 ```
 
+## links
+
+- https://cloud.google.com/compute/docs/containers/deploying-containers
+- https://cloudinit.readthedocs.io/en/latest/index.html
+
 ## TODO
 
 - have some monitoring dashboard web endpoint using `status` data + google monitoring/logs links ... 

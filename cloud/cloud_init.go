@@ -1,8 +1,15 @@
 package cloud
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
-func buildCloudInit(project, cfnRegion, image, command string) string {
+func buildCloudInit(project, cfnRegion, image string, command []string) string {
+	// should set vm shutdown token
+	// should use task as first arg?
+	// should quote all command parts
+	my_command := strings.Join(command, " ")
 	return fmt.Sprintf(`
 #cloud-config
 users:
@@ -21,11 +28,9 @@ write_files:
 
     [Service]
     User=cloudservice
-    Restart=always
-    RestartSec=5
+    Restart=no
     Environment="HOME=/home/cloudservice"
     ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
-    ExecStartPre=/usr/bin/docker pull %s
     ExecStart=/usr/bin/docker run --rm \
         -v/var/run/docker.sock:/var/run/docker.sock \
         -v/home/cloudservice/.docker/config.json:/home/cloudservice/.docker/config.json \
@@ -38,5 +43,5 @@ runcmd:
 - docker-credential-gcr configure-docker
 - systemctl daemon-reload
 - systemctl start cloudservice.service
-`, image, project, cfnRegion, image, command)
+`, project, cfnRegion, image, my_command)
 }

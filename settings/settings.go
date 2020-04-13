@@ -30,6 +30,11 @@ const (
 	// FlagDetached sets dockers -d flag
 	FlagDetached = "detached"
 
+	// FlagSSHPublicKey can be deployed on VM instance
+	FlagSSHPublicKey = "ssh-public-key"
+	// FlagNoSSH
+	FlagNoSSH = "no-ssh"
+
 	// ActionSubmit ...
 	ActionSubmit = "submit"
 	// ActionWait ...
