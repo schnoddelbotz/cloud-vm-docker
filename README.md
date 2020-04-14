@@ -1,4 +1,4 @@
-# cloud-vm-docker
+# cloud-vm-docker -- !!WIP!!
 
 Running dockerized one-shot workloads on Google ComputeEngine has never been easier.
 At least this might do as a valid advertisement slogan for cloud-vm-docker, given:
@@ -98,6 +98,10 @@ make clean test build
 
 # this creates a VM directly (from local machine), bypassing PubSub
 ./cloud-vm-docker task-vm create busybox sh -c 'echo hello world ; sleep 120 ; echo goodnight'
+
+# ^^ notice:
+# - ComputeEngine console UI should show the VM within a few secs
+# - If nothing goes wrong (TM), the VM should self-destruct upon completion, just leaving logs
 
 # the same, but using "official" way via PubSub Message (which is processed by a CFn)
 # NOTE: Does NOT spawn the VM atm, just logs what it will do soon...

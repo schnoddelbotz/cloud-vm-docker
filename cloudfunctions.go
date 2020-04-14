@@ -8,6 +8,8 @@ import (
 	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 	"github.com/schnoddelbotz/cloud-vm-docker/handlers"
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
+	// to load viper defaults for our flags...
+	_ "github.com/schnoddelbotz/cloud-vm-docker/cmd"
 )
 
 var runtimeEnvironment *handlers.Environment

@@ -162,7 +162,7 @@ write_files:
     Restart=no
     Environment="HOME=/home/cloudservice" "MGMT_TOKEN={{.Task.ManagementToken}}" "CVD_CFN_URL={{.ManagementURL}}" "CVD_VM_ID={{.Task.VMID}}"
     ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
-    ExecStartPre=/usr/bin/curl -s -H"X-Authorization: $MGMT_TOKEN" ${CVD_CFN_URL}/status/${CVD_VM_ID}/BOOTED
+    ExecStartPre=/usr/bin/curl -s -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/status/${CVD_VM_ID}/BOOTED
     ExecStart=/usr/bin/docker run --rm \
         -v/var/run/docker.sock:/var/run/docker.sock \
         -v/home/cloudservice/.docker/config.json:/home/cloudservice/.docker/config.json \
@@ -171,7 +171,7 @@ write_files:
         --name=cloud-vm-docker \
         {{.Task.TaskArguments.Image}} {{.QuotedCommand}}
     ExecStop=-/usr/bin/docker stop cloud-vm-docker
-    ExecStopPost=/usr/bin/curl -s -H"X-Authorization: $MGMT_TOKEN" ${CVD_CFN_URL}/delete/${CVD_VM_ID} 
+    ExecStopPost=/usr/bin/curl -s -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/delete/${CVD_VM_ID}/SUCCESS_FIXME 
 
 runcmd:
 - usermod -aG docker cloudservice
