@@ -64,6 +64,23 @@ Why bother with cloud-vm-docker? Because ...
 - use cloud-vm-docker eg. to spin up an VM instance for further operations to be carried out via SSH
 - playing with Go, Docker and GoogleCloud APIs
 
+## how does it work(flow)?
+
+- Task submission (via curl against HTTP CFN or `cloud-vm-docker run` (the latter putting to pubSub directly))
+- Task submission will trigger a CFN that spins up a VM (args via pubSub) and stores task meta in datastore
+- Alternatively, `cloud-vm-docker task-vm create ...` will bypass above http/pub-sub and spin up VM via compute API
+- VM is set up with a `cloudservice` systemd service, which will ...
+  - PreStart: curl-CFN to update task status in datastore to BOOTED
+  - Start: run your container!
+  - Post: curl-CFN to [update task status to EXITED] and DELETE the VM itself
+- Furthermore, VM is set up to ...
+ - forward container logs to stackdriver
+ - allow SSH access using your local ~/.ssh/*.pub keys
+ - run your container ...
+    - have a `CVD_CFN_URL` and `MGMT_TOKEN` in environment, so status updates can be sent from within your containerized app
+    - bound to VM's host docker.sock
+    - bound to your VM's host GCR credentials 
+
 ## setting up google cloud for cloud-vm-docker usage
 
 for deployment, ensure you did this once:
@@ -162,3 +179,4 @@ Operations
 - coool! can I use this for interactive containers as well? no, not yet, maybe never. you can ssh to vm though.
 - allow alternate VM disk images? custom cloud_init? custom network? labels? svcAccount (or roles to add to default)?
 - have some simple dashboard ('docker ps++') served via http cfn?
+- in theory, even with failed mgmt request, VM should be shut down via `shutdown` command, but service is run as non-root user ...
