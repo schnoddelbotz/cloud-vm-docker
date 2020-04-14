@@ -29,12 +29,12 @@ var createCmd = &cobra.Command{
 		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
 			viper.GetString(settings.FlagEntryPoint), // FIXME!!! UNUSED!!!
 			g.VMType)
-		sshKeys := cloud.GetUserSSHPublicKeys(g.SSHPublicKey, g.DisableSSH)
 
 		log.Printf("Writing task to DataStore: %+v", taskArguments)
 		task := cloud.StoreNewTask(g.ProjectID, *taskArguments)
+		task.SSHPubKeys = cloud.GetUserSSHPublicKeys(g.SSHPublicKey, g.DisableSSH)
 
-		createOp, err := cloud.CreateVM(g, task, sshKeys)
+		createOp, err := cloud.CreateVM(g, task)
 		if err != nil {
 			return fmt.Errorf("ERROR running TaskArguments: %v", err)
 		}

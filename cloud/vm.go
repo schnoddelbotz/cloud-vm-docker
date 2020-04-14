@@ -15,7 +15,7 @@ import (
 )
 
 // CreateVM spins up a ComputeEngine VM instance ...
-func CreateVM(g settings.GoogleSettings, task Task, sshKeys string) (*compute.Operation, error) {
+func CreateVM(g settings.GoogleSettings, task Task) (*compute.Operation, error) {
 	log.Printf("Creating VM named %s of type %s in zone %s in project %s", task.VMID, task.TaskArguments.VMType, g.Zone, g.ProjectID)
 	computeService, ctx := NewComputeService()
 
@@ -60,6 +60,13 @@ func NewComputeService() (*compute.Service, context.Context) {
 		log.Fatalf("Failed to create compute client. Should have re-used anyway (FIXME)")
 	}
 	return computeService, ctx
+}
+
+// DeleteInstanceByName ...
+func DeleteInstanceByName(g settings.GoogleSettings, name string) error {
+	computeClient, ctx := NewComputeService() // duh...
+	_, err := computeClient.Instances.Delete(g.ProjectID, g.Zone, name).Context(ctx).Do()
+	return err
 }
 
 func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *compute.Instance {
@@ -163,7 +170,7 @@ write_files:
         -eMGMT_TOKEN -eCVD_CFN_URL -eCVD_VM_ID \
         --name=cloud-vm-docker \
         {{.Task.TaskArguments.Image}} {{.QuotedCommand}}
-    ExecStop=/usr/bin/docker stop cloud-vm-docker
+    ExecStop=-/usr/bin/docker stop cloud-vm-docker
     ExecStopPost=/usr/bin/curl -H"X-Authorization: $MGMT_TOKEN" ${CVD_CFN_URL}/delete/${CVD_VM_ID} 
 
 runcmd:

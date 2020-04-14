@@ -11,7 +11,7 @@ $ docker run busybox echo foo
 $ cloud-vm-docker run busybox echo foo
 ```
 
-## usage
+## (intended) usage
 
 OK. That looked too simple, as it was using all the defaults from environment.
 So, a more complex example:
@@ -86,6 +86,34 @@ make gcp_deploy
 # - one PubSub monitor, that will spin up VMs as requested in PubSub messages
 ```
 
+## test-drive -- what works now?
+
+Git clone this repo, and adjust `testenv.inc.sh` to your needs. Then ...
+
+```bash
+# especially adjust command for getting auto-completion :-)
+source testenv.inc.sh
+make deploy_gcp
+make clean test build
+
+# this creates a VM directly (from local machine), bypassing PubSub
+./cloud-vm-docker task-vm create busybox sh -c 'echo hello world ; sleep 120 ; echo goodnight'
+
+# the same, but using "official" way via PubSub Message (which is processed by a CFn)
+# NOTE: Does NOT spawn the VM atm, just logs what it will do soon...
+./cloud-vm-docker run busybox sh -c 'echo hello world ; sleep 120 ; echo goodnight'
+
+# list VMs as stored in dataStore
+./cloud-vm-docker ps
+
+# this should be ./cloud-vm-docker ssh ... but, for now, look up IP in console[FIXME].
+# If this fails ... there's a bug with more than 1 ssh keys in home. +1 fixme...
+ssh cloud-vm-docker@IP 
+
+# delete the VM -- [TODO: autocomplete!]
+./cloud-vm-docker task-vm kill ...ID_as_shown_in_ps_output...
+``` 
+
 ## links
 
 Google Cloud general
@@ -116,6 +144,7 @@ Operations
 ## TODO
 
 - tests, tests, tests
+- DataStore: updates -- status updates via CFN (see cloud_init), or after `task-vm kill ...`
 - have some monitoring dashboard web endpoint using `status` data + google monitoring/logs links ...
 - or update some google-hosted dashboard to add/remove machines as they come/run/go(history)
 - https://cloud.google.com/compute/docs/storing-retrieving-metadata --> put VM meta in DataStore / partially?

@@ -8,18 +8,15 @@ import (
 
 // GoogleSettings define anything Google related (project, service account, ...)
 type GoogleSettings struct {
-	ProjectID string
-
-	Zone   string
-	Region string
-
+	ProjectID                  string
+	Zone                       string
+	Region                     string
 	VMType                     string
 	SSHPublicKey               string
 	DisableSSH                 bool
 	VMPostDockerRunTargetState string // should become: SHUTDOWN | DELETE | KEEP
-
-	DataStoreCollection string
-	TaskPubSubTopic     string
+	DataStoreCollection        string
+	TaskPubSubTopic            string
 }
 
 const (
