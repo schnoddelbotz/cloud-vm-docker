@@ -5,7 +5,7 @@ VERSION := $(shell git describe --tags | cut -dv -f2)
 DOCKER_IMAGE := schnoddelbotz/cloud-vm-docker
 LDFLAGS := -X github.com/schnoddelbotz/cloud-vm-docker/cmd.AppVersion=$(VERSION) -w
 
-GO_SOURCES := */*.go */*/*.go */*/*/*.go
+GO_SOURCES := */*.go */*/*.go
 
 
 build: $(BINARY)
@@ -24,7 +24,7 @@ release: all_docker docker_image_push
 test:
 	# golint -set_exit_status ./...
 	go fmt ./...
-	golint ./...
+	# golint ./...
 	go vet ./...
 	go test -ldflags='-w -s $(LDFLAGS)' ./...
 	go build cloudfunctions.go
@@ -46,8 +46,8 @@ deploy_cfn_pubsub:
      		--trigger-topic=cloud-vm-docker-task-queue --allow-unauthenticated \
      		--set-env-vars=CVD_TOPIC=cloud-vm-docker-task-queue,CVD_PROJECT=$(CVD_PROJECT)
 
-docker_image:
-	docker build -f Docker/cloud-vm-docker.Dockerfile -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .
+docker_image: clean
+	docker build -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .
 
 
 docker_image_push:
