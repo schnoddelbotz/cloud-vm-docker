@@ -64,6 +64,7 @@ func NewComputeService() (*compute.Service, context.Context) {
 
 // DeleteInstanceByName ...
 func DeleteInstanceByName(g settings.GoogleSettings, name string) error {
+	log.Printf("DeleteInstanceByName called for: %s", name)
 	computeClient, ctx := NewComputeService() // duh...
 	_, err := computeClient.Instances.Delete(g.ProjectID, g.Zone, name).Context(ctx).Do()
 	return err
@@ -108,6 +109,10 @@ func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *comput
 				Scopes: []string{
 					compute.DevstorageFullControlScope,
 					compute.ComputeScope,
+					"https://www.googleapis.com/auth/logging.write",
+					"https://www.googleapis.com/auth/monitoring.write",
+					"https://www.googleapis.com/auth/bigquery",
+					"https://www.googleapis.com/auth/service.management.readonly",
 				},
 			},
 		},
@@ -171,7 +176,7 @@ write_files:
         --name=cloud-vm-docker \
         {{.Task.TaskArguments.Image}} {{.QuotedCommand}}
     ExecStop=-/usr/bin/docker stop cloud-vm-docker
-    ExecStopPost=/usr/bin/curl -s -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/delete/${CVD_VM_ID}/SUCCESS_FIXME 
+    ExecStopPost=/usr/bin/curl -s -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/delete/${CVD_VM_ID}/${EXIT_STATUS}
 
 runcmd:
 - usermod -aG docker cloudservice
@@ -179,6 +184,11 @@ runcmd:
 - systemctl daemon-reload
 - systemctl start cloudservice.service
 ` // ATTN: Extra-careful to not put whitespace after \ for line concat above!
+
+	// ExecStopPost=/usr/bin/curl ... ${CVD_CFN_URL}/debug/${SERVICE_RESULT}/${EXIT_CODE}/${EXIT_STATUS}
+	// --->
+	// /debug/success/exited/0
+	// /debug/exit-code/exited/127
 
 	// FIXME!!! There should be:
 	// ExecStopPost=shutdown -h now ... as safety net

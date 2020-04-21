@@ -75,6 +75,40 @@ func NewDataStoreClient(ctx context.Context, projectID string) *datastore.Client
 	return client
 }
 
+// UpdateTaskStatus sets a Task's 'status' field to given string value
+func UpdateTaskStatus(projectID, vmID, status string) error {
+	log.Printf("UpdateTaskStatus: %s -> %s", vmID, status)
+	ctx := context.Background() // fixme pass in
+	client := NewDataStoreClient(ctx, projectID)
+	tx, err := client.NewTransaction(ctx)
+	if err != nil {
+		log.Fatalf("client.NewTransaction: %v", err)
+	}
+	var task Task
+	taskKey := datastore.NameKey(settings.FireStoreCollection, vmID, nil)
+	if err := tx.Get(taskKey, &task); err != nil {
+		log.Fatalf("tx.Get: %v", err)
+	}
+	task.Status = status
+	if _, err := tx.Put(taskKey, &task); err != nil {
+		log.Fatalf("tx.Put: %v", err)
+	}
+	if _, err := tx.Commit(); err != nil {
+		log.Fatalf("tx.Commit: %v", err)
+	}
+	return nil
+}
+
+// GetTask tries to fetch given record from DataStore
+func GetTask(projectID, vmID string) (Task, error) {
+	ctx := context.Background() // fixme pass in
+	client := NewDataStoreClient(ctx, projectID)
+	var task Task
+	taskKey := datastore.NameKey(settings.FireStoreCollection, vmID, nil)
+	err := client.Get(ctx, taskKey, &task)
+	return task, err
+}
+
 func generateTaskName(task TaskArguments) string {
 	// ... WAS: as used as DataStore ID -- drop?
 	now := time.Now()

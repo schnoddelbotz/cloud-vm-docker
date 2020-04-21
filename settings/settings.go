@@ -34,6 +34,8 @@ const (
 	FlagDetached = "detached"
 	// FlagEntrypoint IS NOT USED YET
 	FlagEntrypoint = "entrypoint"
+	// FlagWait tells run command to wait until container completed
+	FlagWait = "wait"
 
 	// FlagSSHPublicKey can be deployed on VM instance
 	FlagSSHPublicKey = "ssh-public-key"

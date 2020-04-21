@@ -32,6 +32,20 @@ func CloudVMDocker(w http.ResponseWriter, r *http.Request, env *Environment) {
 		action := rqParts[1]
 		vmID := rqParts[2]
 		targetValue := rqParts[3]
+
+		taskData, err := cloud.GetTask(env.GoogleSettings.ProjectID, vmID)
+		if err != nil {
+			log.Printf("Error loading task: %s", err)
+			http.Error(w, err.Error(), 400)
+			return
+		}
+
+		if taskData.ManagementToken != r.Header.Get("X-Authorization") {
+			log.Printf("DENIED: Invalid token: %s", r.Header.Get("X-Authorization"))
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+
 		if action == "delete" {
 			err := cloud.DeleteInstanceByName(env.GoogleSettings, vmID)
 			if err != nil {
@@ -39,9 +53,11 @@ func CloudVMDocker(w http.ResponseWriter, r *http.Request, env *Environment) {
 				http.Error(w, err.Error(), 400)
 				return
 			}
+			cloud.UpdateTaskStatus(env.GoogleSettings.ProjectID, vmID, targetValue)
 		} else if action == "status" {
-			log.Printf("TODO: Update Datastore: %s ... %s -> %s", vmID, action, targetValue)
+			cloud.UpdateTaskStatus(env.GoogleSettings.ProjectID, vmID, targetValue)
 		} else {
+			// todo: add /progress/vmid/99
 			log.Printf("Get rid of this if-else shit or I forget myself. Action not implemented.")
 		}
 		fmt.Fprintf(w, `Thanks for your %s request -- processed successfully`, action)
