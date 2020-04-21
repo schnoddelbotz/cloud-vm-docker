@@ -28,6 +28,7 @@ func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 		TaskArguments:   taskArguments,
 		VMID:            taskArguments.VMID, // dup! also doc title now ...
 		CreatedAt:       time.Now(),
+		DockerExitCode:  -1,
 		ManagementToken: generateManagementToken(),
 	}
 
@@ -76,7 +77,7 @@ func NewDataStoreClient(ctx context.Context, projectID string) *datastore.Client
 }
 
 // UpdateTaskStatus sets a Task's 'status' field to given string value
-func UpdateTaskStatus(projectID, vmID, status string) error {
+func UpdateTaskStatus(projectID, vmID, status string, exitCode ...int) error {
 	log.Printf("UpdateTaskStatus: %s -> %s", vmID, status)
 	ctx := context.Background() // fixme pass in
 	client := NewDataStoreClient(ctx, projectID)
@@ -89,7 +90,12 @@ func UpdateTaskStatus(projectID, vmID, status string) error {
 	if err := tx.Get(taskKey, &task); err != nil {
 		log.Fatalf("tx.Get: %v", err)
 	}
+
 	task.Status = status
+	if len(exitCode) > 0 {
+		task.DockerExitCode = exitCode[0]
+	}
+
 	if _, err := tx.Put(taskKey, &task); err != nil {
 		log.Fatalf("tx.Put: %v", err)
 	}

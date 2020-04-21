@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
@@ -53,7 +54,8 @@ func CloudVMDocker(w http.ResponseWriter, r *http.Request, env *Environment) {
 				http.Error(w, err.Error(), 400)
 				return
 			}
-			cloud.UpdateTaskStatus(env.GoogleSettings.ProjectID, vmID, targetValue)
+			exitCode, _ := strconv.Atoi(targetValue)
+			cloud.UpdateTaskStatus(env.GoogleSettings.ProjectID, vmID, "DONE", exitCode)
 		} else if action == "status" {
 			cloud.UpdateTaskStatus(env.GoogleSettings.ProjectID, vmID, targetValue)
 		} else {

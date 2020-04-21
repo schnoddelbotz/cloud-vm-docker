@@ -45,6 +45,7 @@ var createCmd = &cobra.Command{
 		status := "submitted"
 		if viper.GetBool(settings.FlagWait) {
 			// FIXME extract ... and avoid polling if possible.
+			var t cloud.Task
 			log.Printf("Waiting for command completion now...")
 			for status != "DONE" {
 				// fixme call CFN, not DS directly???!
@@ -59,6 +60,10 @@ var createCmd = &cobra.Command{
 				if status != "DONE" {
 					time.Sleep(30 * time.Second)
 				}
+			}
+			log.Printf("Task exit code: %d", t.DockerExitCode)
+			if t.DockerExitCode != 0 {
+				return fmt.Errorf("task exited with non-zero return code %d", t.DockerExitCode)
 			}
 		}
 

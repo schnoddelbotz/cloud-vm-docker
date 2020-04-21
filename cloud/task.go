@@ -16,6 +16,8 @@ type Task struct {
 	CreatedAt time.Time
 	// SSHPubKeys string holding one or more \n-separated ssh pubkeys
 	SSHPubKeys string
+	// DockerExitCode from docker run command on VM
+	DockerExitCode int
 }
 
 const (
