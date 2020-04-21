@@ -49,7 +49,7 @@ var createCmd = &cobra.Command{
 			log.Printf("Waiting for command completion now...")
 			for status != "DONE" {
 				// fixme call CFN, not DS directly???!
-				t, err := cloud.GetTask(g.ProjectID, task.VMID)
+				t, err = cloud.GetTask(g.ProjectID, task.VMID)
 				if err != nil {
 					log.Fatalf("Failed to poll DS: %s", err)
 				}
