@@ -17,7 +17,8 @@ var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Creates a ComputeEngine VM instance",
 	// Does the same like run, but circumvents pubsub; creates DataStore entry and spins up VM
-	Args: cobra.MinimumNArgs(1),
+	Args:         cobra.MinimumNArgs(1),
+	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		g := settings.EnvironmentToGoogleSettings()
 		//e := handlers.NewEnvironment(g, false, true, true)

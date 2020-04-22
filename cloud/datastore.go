@@ -55,13 +55,16 @@ func ListTasks(projectID string) {
 	}
 
 	// todo: dynamically check/set required field width -- and/or add flag: disable shortening below...
+	//now := time.Now()
 	outputFormat := "%-12s %-23s %-40s %-14s %s\n"
 	fmt.Printf(outputFormat, "VM_ID", "IMAGE", "COMMAND", "CREATED", "STATUS")
 	for _, doc := range docList {
 		cmd := strings.Join(doc.TaskArguments.Command, " ")
 		fmt.Printf(outputFormat,
 			doc.VMID, getImageNameWithoutRegistryAndTag(doc.TaskArguments.Image),
-			shortenToMaxLength(cmd, 38), "5 min ago", doc.Status)
+			shortenToMaxLength(cmd, 38),
+			fmt.Sprintf("%.f mins ago", time.Since(doc.CreatedAt).Minutes()),
+			fmt.Sprintf("%s (%d)", doc.Status, doc.DockerExitCode))
 	}
 
 	// log.Printf("Got %d tasks as response, showed X, 3 running, 2 deleted.", len(something = client.GetAll retval))
