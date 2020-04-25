@@ -66,9 +66,8 @@ Why bother with cloud-vm-docker? Because ...
 
 ## how does it work(flow)?
 
-- Task submission (via curl against HTTP CFN or `cloud-vm-docker run` (the latter putting to pubSub directly))
-- Task submission will trigger a CFN that spins up a VM (args via pubSub) and stores task meta in datastore
-- Alternatively, `cloud-vm-docker task-vm create ...` will bypass above http/pub-sub and spin up VM via compute API
+- Task submission (via curl against HTTP CFN or `cloud-vm-docker run`)
+- Alternatively, `cloud-vm-docker task-vm create ...` will bypass above http cfn and spin GCE VM + save DataStore record
 - VM is set up with a `cloudservice` systemd service, which will ...
   - PreStart: curl-CFN to update task status in datastore to BOOTED
   - Start: run your container!
@@ -98,9 +97,8 @@ export GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/gcloud/svc-account.json
 # one day, `cloud-vm-docker setup` should do, but for now ... rely on gcloud. could use docker image...
 make gcp_deploy
 
-# the above command will deploy TWO cloud functions, including PubSub Topic and subscription:
-# - one HTTP endpoint, intended for "dumb" curl clients to submit VM tasks (by writing PubSub message)
-# - one PubSub monitor, that will spin up VMs as requested in PubSub messages
+# the above command will deploy one cloud function:
+# A HTTP endpoint, intended for submission of VM tasks and status/management requests
 ```
 
 ## test-drive -- what works now?
@@ -113,16 +111,20 @@ source testenv.inc.sh
 make deploy_gcp
 make clean test build
 
-# this creates a VM directly (from local machine), bypassing PubSub
+# this creates a VM directly (via Google Compute API + DataStore, using local GOOGLE_APPLICATION_CREDENTIALS)
 ./cloud-vm-docker task-vm create busybox sh -c 'echo hello world ; sleep 120 ; echo goodnight'
 
 # ^^ notice:
 # - ComputeEngine console UI should show the VM within a few secs
 # - If nothing goes wrong (TM), the VM should self-destruct upon completion, just leaving logs
 
-# the same, but using "official" way via PubSub Message (which is processed by a CFn)
+# the same, but using "official" way via CloudFunction / HTTP endpoint
 # NOTE: Does NOT spawn the VM atm, just logs what it will do soon...
 ./cloud-vm-docker run busybox sh -c 'echo hello world ; sleep 120 ; echo goodnight'
+# the same as ^ ... but using plain curl (no need for cloud-vm-docker or docker to run container!)
+curl -H'X-Authorization: YOUR_TOKEN' https://your-cfn-endpoint.cloudfunctions.net/CloudVMDocker/run \
+  -H'Content-type: application/json' \
+  -d@'{"image":"busybox", "command":["sh", "-c", "echo", "hello", "world"]}'
 
 # list VMs as stored in dataStore
 ./cloud-vm-docker ps
@@ -154,10 +156,6 @@ DataStore
 - https://cloud.google.com/datastore/docs/reference/libraries
 - https://cloud.google.com/datastore/docs/concepts/queries
 
-PubSub
-
-- https://github.com/GoogleCloudPlatform/golang-samples/blob/master/appengine_flexible/pubsub/pubsub.go
-
 Operations
 
 - https://github.com/googleapis/google-api-go-client/blob/master/examples/operation_progress.go
@@ -173,7 +171,7 @@ Operations
   curl -H'Metadata-Flavor:Google' "http://metadata.google.internal/computeMetadata/v1/instance/"curl -H'Metadata-Flavor:Google' "http://metadata.google.internal/computeMetadata/v1/instance/"
   curl -H'Metadata-Flavor:Google' "http://metadata.google.internal/computeMetadata/v1/instance/attributes/user-data"
   ```
-- let user decide on `run` whether to use HTTP endpoint or write pubsub directly
+  
 - deployment: let user disable HTTP endpoint if not needed
 - list which commands work as 100% "drop-in" replacement for docker commands -- goal: as-much-as-possible
 - coool! can I use this for interactive containers as well? no, not yet, maybe never. you can ssh to vm though.

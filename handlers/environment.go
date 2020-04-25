@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"cloud.google.com/go/datastore"
-	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/compute/v1"
 
 	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
@@ -15,22 +14,17 @@ import (
 type Environment struct {
 	GoogleSettings  settings.GoogleSettings
 	Context         context.Context
-	PubSubClient    *pubsub.Client
 	DataStoreClient *datastore.Client
 	ComputeService  *compute.Service
 }
 
 // NewEnvironment creates google service clients as requested
-func NewEnvironment(googleSettings settings.GoogleSettings, withPubSubClient bool, withDataStoreClient bool, withComputeService bool) *Environment {
-	var pubSubClient *pubsub.Client
+func NewEnvironment(googleSettings settings.GoogleSettings, withDataStoreClient bool, withComputeService bool) *Environment {
 	var dataStoreClient *datastore.Client
 	var computeService *compute.Service
 
 	eContext := context.Background()
 
-	if withPubSubClient {
-		pubSubClient, _ = cloud.NewPubSubClient(googleSettings.ProjectID)
-	}
 	if withDataStoreClient {
 		dataStoreClient = cloud.NewDataStoreClient(eContext, googleSettings.ProjectID)
 	}
@@ -41,7 +35,6 @@ func NewEnvironment(googleSettings settings.GoogleSettings, withPubSubClient boo
 	return &Environment{
 		GoogleSettings:  googleSettings,
 		Context:         eContext,
-		PubSubClient:    pubSubClient,
 		DataStoreClient: dataStoreClient,
 		ComputeService:  computeService,
 	}

@@ -25,7 +25,8 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 		g := settings.EnvironmentToGoogleSettings()
 		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
 			viper.GetString(settings.FlagEntryPoint), g.VMType)
-		err := cloud.PubSubPushTask(taskArguments, viper.GetString(settings.FlagProject), settings.TopicNameTaskQueue)
+		client := cloud.NewCFNClient("", "")
+		_, err := client.Run(*taskArguments)
 		if err != nil {
 			return fmt.Errorf("ERROR running TaskArguments: %v", err)
 		}
@@ -40,9 +41,6 @@ func init() {
 	flags.StringP(settings.FlagDetached, "d", "detach", "Run container in background and print container ID")
 	flags.StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
 	flags.BoolP(settings.FlagWait, "w", false, "wait until command completes / VM shuts down")
-
-	// todo: have bool flag --via-cfn -- as this client runs directly into pubsub by default.
-	//       "legacy" scripts may want to spawn VMs just via CFN/HTTP+Token, to avoid need for this binary (+svc_acc)
 
 	viper.BindPFlag(settings.FlagWait, runCmd.Flags().Lookup(settings.FlagWait))
 	viper.BindPFlag(settings.FlagDetached, runCmd.Flags().Lookup(settings.FlagDetached))

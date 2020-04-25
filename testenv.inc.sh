@@ -5,7 +5,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=/Users/jan/.config/gcloud/jan-playground.j
 
 # GoogleCloud: Project ID
 export CVD_PROJECT=hacker-playground-254920
-# used by Make for GCP PubSubFn deployment. Why not in env by default?
+# used by Make for GCP deployment. Why not in env by default? Fall back to GCP_PROJECT?
 # https://cloud.google.com/functions/docs/env-var#nodejs_6_nodejs_8_python_37_and_go_111
 
 

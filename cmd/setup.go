@@ -11,7 +11,7 @@ import (
 // setupCmd represents the setup command
 var setupCmd = &cobra.Command{
 	Use:   "setup",
-	Short: "Set up cloud-vm-docker CloudFunction/PubSub environment",
+	Short: "Set up cloud-vm-docker CloudFunction environment",
 	Long:  `cloud-vm-docker setup wizard`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cloud.Setup(viper.GetString(settings.FlagProject))

@@ -11,7 +11,7 @@ type TaskArguments struct {
 	Command    []string
 	EntryPoint string
 	VMType     string
-	VMID       string // we must pass this in upon creation request ... as async pubsub would not tell us
+	VMID       string // we must pass this in upon creation request ... FIXME - Relict from P*bSub times?
 }
 
 // NewTaskArgumentsFromArgs returns a new TaskArguments based on CLI args
@@ -26,7 +26,7 @@ func NewTaskArgumentsFromArgs(image string, command []string, entryPoint string,
 	}
 }
 
-// NewTaskArgumentsFromBytes returns a new TaskArguments based on a (pubsub) JSON message
+// NewTaskArgumentsFromBytes returns a new TaskArguments based on a JSON message
 func NewTaskArgumentsFromBytes(data []byte) *TaskArguments {
 	task := TaskArguments{}
 	err := json.Unmarshal(data, &task)

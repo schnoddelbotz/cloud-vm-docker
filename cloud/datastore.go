@@ -16,8 +16,6 @@ import (
 // Thing below should be split into NewTask(proj, args).Store()
 
 // StoreNewTask saves a new task in FireStore DB.
-// It is called by PubSubFn for each message received.
-// Note that just storing a task does nothing; the pubsubtrigger is supposed to spin up the VM for the Task.
 func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 	ctx := context.Background()
 	client := NewDataStoreClient(ctx, projectID)
@@ -48,7 +46,7 @@ func ListTasks(projectID string) {
 	docList := make([]Task, 0)
 
 	// todo: add filter (-a arg), sorting, FIX CREATED OUTPUT
-	q := datastore.NewQuery(settings.FireStoreCollection)
+	q := datastore.NewQuery(settings.FireStoreCollection) //.Order("CreatedAt") -- requires Index
 	_, err := client.GetAll(ctx, q, &docList)
 	if err != nil {
 		log.Fatalf("Failed to list: %v", err)

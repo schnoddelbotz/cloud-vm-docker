@@ -2,21 +2,22 @@ package cloud
 
 import (
 	"log"
-
-	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
 
 // Setup creates necessary GoogleCloud infra for cloud-vm-docker operations --- NOT USABLE YET
 func Setup(projectID string) {
 	log.Print("SETTING UP infrastructure for cloud-vm-docker ...")
-	bailOnError(createPubSubTopic(projectID, settings.TopicNameTaskQueue), "creating task queue")
+	// todo: deploy cfn
 	log.Print("SUCCESS setting up cloud-vm-docker cloud infra. Have fun!")
 }
 
 // Destroy removes infra created by setup routine
 func Destroy(projectID string) {
 	log.Print("DESTROYING infrastructure for cloud-vm-docker ...")
-	bailOnError(deletePubSubTopic(projectID, settings.TopicNameTaskQueue), "deleting task queue")
+	// todo: delete cfn
+	//       clear datastore
+	//       clear VMs?
+	//       clear SD logs?
 	log.Print("SUCCESS destroying cloud-vm-docker cloud infra. Have fun!")
 }
 

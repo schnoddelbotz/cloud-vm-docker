@@ -16,7 +16,6 @@ type GoogleSettings struct {
 	DisableSSH                 bool
 	VMPostDockerRunTargetState string // should become: SHUTDOWN | DELETE | KEEP
 	DataStoreCollection        string
-	TaskPubSubTopic            string
 }
 
 const (
@@ -64,7 +63,6 @@ func EnvironmentToGoogleSettings() GoogleSettings {
 		DisableSSH:                 viper.GetBool(FlagNoSSH),
 		VMPostDockerRunTargetState: "",                  // notyet
 		DataStoreCollection:        FireStoreCollection, // fixme: static for now
-		TaskPubSubTopic:            TopicNameTaskQueue,  // fixme: static for now
 	}
 	return s
 }

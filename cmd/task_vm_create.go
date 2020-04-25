@@ -16,7 +16,7 @@ import (
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Creates a ComputeEngine VM instance",
-	// Does the same like run, but circumvents pubsub; creates DataStore entry and spins up VM
+	// Does the same like run, but circumvents http cfn; creates DataStore entry and spins up GCE VM
 	Args:         cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {

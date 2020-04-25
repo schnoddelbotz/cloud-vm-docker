@@ -34,17 +34,9 @@ coverage: clean
 	go tool cover -html=coverage.out
 
 deploy_gcp: test clean
-	make -j2 deploy_cfn_http deploy_cfn_pubsub
-
-deploy_cfn_http:
 	gcloud functions deploy CloudVMDocker --region=europe-west1 --runtime go113 \
  		--trigger-http --allow-unauthenticated --project=$(CVD_PROJECT) \
  		--set-env-vars=CVD_DATASTORE_COLLECTION=cloud-vm-docker-test,CVD_PROJECT=$(CVD_PROJECT)
-
-deploy_cfn_pubsub:
-	gcloud functions deploy CloudVMDockerProcessor --region=europe-west1 --runtime go113 \
-     		--trigger-topic=cloud-vm-docker-task-queue --allow-unauthenticated --project=$(CVD_PROJECT) \
-     		--set-env-vars=CVD_TOPIC=cloud-vm-docker-task-queue,CVD_PROJECT=$(CVD_PROJECT)
 
 docker_image: clean
 	docker build -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .
