@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/logging"
 	"cloud.google.com/go/logging/logadmin"
@@ -24,18 +25,20 @@ func GetLogLinkForContainer(project string, GCEInstanceID uint64, containerID st
 	return fmt.Sprintf(baseLink, GCEInstanceID, project, containerID)
 }
 
-func PrintLogEntries(projectID, instanceID, containerID string) {
+func PrintLogEntries(projectID, instanceID, containerID string, createdAt time.Time) {
 	//log.Printf("Printing logs for %s/instanceID=%s/container=%s", projectID, instanceID, containerID)
 	ctx := context.Background()
 	client := NewStackDriverClient(ctx, projectID)
 
 	// FIXME:
 	logFilterFormat := `
-		logName = "projects/%s/logs/cos_containers" 
-		jsonPayload.container_id="%s" 
-		resource.type="gce_instance" 
-		resource.labels.instance_id="%s"`
-	filter := fmt.Sprintf(logFilterFormat, projectID, containerID, instanceID)
+		logName = "projects/%s/logs/cos_containers"
+		resource.type="gce_instance"
+		timestamp >= "%s"
+		resource.labels.instance_id="%s"
+		jsonPayload.container_id="%s"`
+	filter := fmt.Sprintf(logFilterFormat, projectID, createdAt.Format(time.RFC3339), instanceID, containerID)
+	//log.Printf("Using filter:\n%s", filter)
 
 	it := client.Entries(ctx, logadmin.Filter(filter))
 	var entries []*logging.Entry

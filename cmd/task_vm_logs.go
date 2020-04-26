@@ -32,7 +32,7 @@ var logsCmd = &cobra.Command{
 			log.Printf("Docker Logs: %s", cloud.GetLogLinkForContainer(g.ProjectID, instanceID, task.DockerContainerId))
 		}
 
-		cloud.PrintLogEntries(g.ProjectID, task.InstanceID, task.DockerContainerId)
+		cloud.PrintLogEntries(g.ProjectID, task.InstanceID, task.DockerContainerId, task.CreatedAt)
 	},
 }
 

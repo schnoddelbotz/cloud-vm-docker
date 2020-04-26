@@ -79,7 +79,7 @@ var createCmd = &cobra.Command{
 				log.Printf("WAITING another 10 seconds for logs to appear in StackDriver...")
 				time.Sleep(10 * time.Second)
 				log.Printf("Logs from StackDriver:")
-				cloud.PrintLogEntries(g.ProjectID, t.InstanceID, t.DockerContainerId)
+				cloud.PrintLogEntries(g.ProjectID, t.InstanceID, t.DockerContainerId, t.CreatedAt)
 			}
 		}
 
