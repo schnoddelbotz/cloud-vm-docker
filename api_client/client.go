@@ -1,9 +1,10 @@
-package cloud
+package api_client
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -52,7 +53,7 @@ func GetEndpoint(project, region string) string {
 }
 
 // Run submits a Docker task to run in the cloud to HTTP CloudFunction endpoint
-func (c *CFNClient) Run(taskArgs TaskArguments) (Task, error) {
+func (c *CFNClient) Run(taskArgs cloud.TaskArguments) (cloud.Task, error) {
 	log.Printf("CFNClient running on %s with taskArgs %v", c.Endpoint, taskArgs)
 	requestBody, err := json.Marshal(taskArgs)
 	if err != nil {
@@ -63,7 +64,7 @@ func (c *CFNClient) Run(taskArgs TaskArguments) (Task, error) {
 	if err != nil {
 		log.Fatalf("Error submitting request: %s", err)
 	}
-	var task Task
+	var task cloud.Task
 	err = json.Unmarshal(responseBody, &task)
 	if err != nil {
 		log.Printf("Unmarshalling response failed: %s", err)
@@ -72,8 +73,8 @@ func (c *CFNClient) Run(taskArgs TaskArguments) (Task, error) {
 	return task, nil
 }
 
-func (c *CFNClient) WaitForDoneStatus(vmID string) (exitCode int) {
-	var task Task
+func (c *CFNClient) WaitForDoneStatus(vmID string) cloud.Task {
+	var task cloud.Task
 	status := "unknown"
 	requestPath := fmt.Sprintf("status/%s/", vmID)
 
@@ -96,10 +97,7 @@ func (c *CFNClient) WaitForDoneStatus(vmID string) (exitCode int) {
 		}
 	}
 	log.Printf("SUCCESS waiting for DONE status of VM %s", vmID)
-
-	exitCode = task.DockerExitCode
-	log.Printf("VM DOCKER EXIT CODE: %d", exitCode)
-	return
+	return task
 }
 
 func (c *CFNClient) executeClientRequest(method, path string, requestBody []byte) ([]byte, error) {

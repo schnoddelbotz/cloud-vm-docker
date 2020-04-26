@@ -21,6 +21,7 @@ func CloudVMDocker(w http.ResponseWriter, r *http.Request, env *Environment) {
 	//  MGM-TOKEN GET /status/tec1980be9d
 	//  MGM-TOKEN GET /status (cloud-vm-docker ps)
 	//   VM-TOKEN GET /delete/t23c7ac6d4f/0  --- semantically wrong to use GET, but easier to curl... m(
+	// FIXMEEEEE! Separete /vm (vm management token) and /manage (cfn admin token)
 	action, vmID, targetValue, err := parseRequestURI(r.RequestURI)
 	if err != nil {
 		log.Printf("Invalid request URI: %s", r.RequestURI)
@@ -49,6 +50,11 @@ func CloudVMDocker(w http.ResponseWriter, r *http.Request, env *Environment) {
 			return
 		}
 		handleDelete(w, env, vmID, targetValue)
+	case "container":
+		if !authenticateVMRequest(w, clientToken, env, vmID) {
+			return
+		}
+		handleContainer(w, r, env, vmID)
 	case "run":
 		if !authenticateAdminRequest(w, clientToken, env) {
 			return
@@ -89,8 +95,8 @@ func parseRequestURI(uri string) (action, vmid, data string, err error) {
 		return
 	}
 	action = parts[1]
-	if action != "delete" && action != "status" && action != "run" {
-		err = errors.New("invalid action %s, expected on of: delete, status, run")
+	if action != "delete" && action != "status" && action != "run" && action != "container" {
+		err = errors.New("invalid action %s, expected on of: delete, status, run, container")
 		return
 	}
 	vmid = parts[2]
@@ -115,9 +121,17 @@ func handleRun(w http.ResponseWriter, r *http.Request, env *Environment, vmID st
 		http.Error(w, err.Error(), 500)
 		return
 	}
+
 	log.Println("VM creation requested successfully, waiting for op...")
 	cloud.WaitForOperation(env.GoogleSettings.ProjectID, env.GoogleSettings.Zone, createOp.Name)
-	log.Printf("VM CREATED! YAY -- FIXME: IGNORED!!! vmid from path %s, using from JSON %s", vmID, task.VMID)
+
+	log.Printf("Saving GCE InstanceID to DataStore: %s => %d", vmID, createOp.TargetId)
+	err = cloud.SetTaskInstanceId(env.GoogleSettings.ProjectID, vmID, createOp.TargetId)
+	if err != nil {
+		log.Printf("ARGH!!! Could not update instanceID in DataStore: %s", err)
+	}
+	task.InstanceID = strconv.FormatUint(createOp.TargetId, 10)
+
 	responseBody, _ := json.Marshal(task)
 	w.Header().Set("content-type", "application/json")
 	numBytes, err := w.Write(responseBody)
@@ -160,4 +174,26 @@ func handleDelete(w http.ResponseWriter, env *Environment, vmID string, exitCode
 		return
 	}
 	fmt.Fprintf(w, `Thanks for your DELETE request -- processed successfully`)
+}
+
+func handleContainer(w http.ResponseWriter, r *http.Request, env *Environment, vmID string) {
+	log.Printf("Handling CONTAINER(ID) request form VMID %s", vmID)
+	containerID, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("ERROR: Cannot read body of container update request: %s", err)
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	if len(containerID) != 64 {
+		log.Printf("ERROR: Bad container update request, expected 64-char container ID, got: `%s`", containerID)
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	err = cloud.SetTaskContainerID(env.GoogleSettings.ProjectID, vmID, string(containerID))
+	if err != nil {
+		log.Printf("ERROR: Failed to update containerID of vm %s to `%s`", vmID, containerID)
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	fmt.Fprintf(w, `Thanks for your CONTAINER request -- processed successfully .... not yet..`)
 }

@@ -10,6 +10,8 @@ type Task struct {
 	Status string
 	// VMID holds name of VM
 	VMID string
+	// InstanceID holds ID of GCE instance, only known after creation. It's a uint64, but datastore no supporty.
+	InstanceID string
 	// ManagementToken is known to VM itself, so it can request clean self-destruction
 	ManagementToken string
 	// CreatedAt ...
@@ -18,6 +20,8 @@ type Task struct {
 	SSHPubKeys string
 	// DockerExitCode from docker run command on VM
 	DockerExitCode int
+	// DockerContainerId stores container ID on VM, to enable StackDriver log filtering
+	DockerContainerId string
 }
 
 const (

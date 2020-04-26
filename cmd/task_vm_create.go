@@ -40,8 +40,15 @@ var createCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("ERROR running TaskArguments: %v", err)
 		}
-		log.Println("VM creation requested successfully")
+
+		log.Printf("VM logs: %s", cloud.GetLogLinkForVM(g.ProjectID, createOp.TargetId))
+		log.Println("VM creation requested successfully, waiting for create completion")
 		cloud.WaitForOperation(g.ProjectID, g.Zone, createOp.Name)
+
+		err = cloud.SetTaskInstanceId(g.ProjectID, task.VMID, createOp.TargetId)
+		if err != nil {
+			log.Printf("ARGH!!! Could not update instanceID in DataStore: %s", err)
+		}
 
 		status := "submitted"
 		if viper.GetBool(settings.FlagWait) {
@@ -62,6 +69,7 @@ var createCmd = &cobra.Command{
 					time.Sleep(30 * time.Second)
 				}
 			}
+			log.Printf("Container logs: %s", cloud.GetLogLinkForContainer(g.ProjectID, createOp.TargetId, t.DockerContainerId))
 			log.Printf("Task exit code: %d", t.DockerExitCode)
 			if t.DockerExitCode != 0 {
 				return fmt.Errorf("task exited with non-zero return code %d", t.DockerExitCode)

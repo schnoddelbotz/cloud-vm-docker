@@ -168,7 +168,7 @@ write_files:
     Environment="HOME=/home/cloudservice" "MGMT_TOKEN={{.Task.ManagementToken}}" "CVD_CFN_URL={{.ManagementURL}}" "CVD_VM_ID={{.Task.VMID}}"
     ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
     ExecStartPre=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/status/${CVD_VM_ID}/BOOTED
-    ExecStart=/usr/bin/docker run --rm \
+    ExecStart=/usr/bin/docker run \
         -v/var/run/docker.sock:/var/run/docker.sock \
         -v/home/cloudservice/.docker/config.json:/home/cloudservice/.docker/config.json \
         -eGCP_PROJECT={{.Google.ProjectID}} -eGCP_REGION={{.Google.Region}} \
@@ -176,6 +176,7 @@ write_files:
         --name=cloud-vm-docker \
         {{.Task.TaskArguments.Image}} {{.QuotedCommand}}
     ExecStop=-/usr/bin/docker stop cloud-vm-docker
+    ExecStopPost=/bin/sh -c "/usr/bin/docker inspect cloud-vm-docker --format='{''{'.Id'}''}' > /tmp/cid && /usr/bin/curl -s -d@/tmp/cid -H'X-Authorization: ${MGMT_TOKEN}' ${CVD_CFN_URL}/container/${CVD_VM_ID}/set"
     ExecStopPost=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/delete/${CVD_VM_ID}/${EXIT_STATUS}
 
 runcmd:
@@ -189,6 +190,7 @@ runcmd:
 	// --->
 	// /debug/success/exited/0
 	// /debug/exit-code/exited/127
+	// /usr/bin/docker inspect cloud-vm-docker --format='{{.Id}}'
 
 	// FIXME!!! There should be:
 	// ExecStopPost=shutdown -h now ... as safety net

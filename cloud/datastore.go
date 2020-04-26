@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -96,6 +97,58 @@ func UpdateTaskStatus(projectID, vmID, status string, exitCode ...int) error {
 	if len(exitCode) > 0 {
 		task.DockerExitCode = exitCode[0]
 	}
+
+	if _, err := tx.Put(taskKey, &task); err != nil {
+		log.Fatalf("tx.Put: %v", err)
+	}
+	if _, err := tx.Commit(); err != nil {
+		log.Fatalf("tx.Commit: %v", err)
+	}
+	return nil
+}
+
+// SetTaskContainerID sets a Task's 'status' field to given string value
+func SetTaskContainerID(projectID, vmID, containerID string) error {
+	log.Printf("SetTaskContainerID: %s -> %s", vmID, containerID)
+	ctx := context.Background() // fixme pass in
+	client := NewDataStoreClient(ctx, projectID)
+	tx, err := client.NewTransaction(ctx)
+	if err != nil {
+		log.Fatalf("client.NewTransaction: %v", err)
+	}
+	var task Task
+	taskKey := datastore.NameKey(settings.FireStoreCollection, vmID, nil)
+	if err := tx.Get(taskKey, &task); err != nil {
+		log.Fatalf("tx.Get: %v", err)
+	}
+
+	task.DockerContainerId = containerID
+
+	if _, err := tx.Put(taskKey, &task); err != nil {
+		log.Fatalf("tx.Put: %v", err)
+	}
+	if _, err := tx.Commit(); err != nil {
+		log.Fatalf("tx.Commit: %v", err)
+	}
+	return nil
+}
+
+// UpdateTaskStatus sets a Task's 'status' field to given string value
+func SetTaskInstanceId(projectID, vmID string, instanceID uint64) error {
+	log.Printf("SetTaskInstanceId: VM_ID %s -> InstanceID %d", vmID, instanceID)
+	ctx := context.Background() // fixme pass in
+	client := NewDataStoreClient(ctx, projectID)
+	tx, err := client.NewTransaction(ctx)
+	if err != nil {
+		log.Fatalf("client.NewTransaction: %v", err)
+	}
+	var task Task
+	taskKey := datastore.NameKey(settings.FireStoreCollection, vmID, nil)
+	if err := tx.Get(taskKey, &task); err != nil {
+		log.Fatalf("tx.Get: %v", err)
+	}
+
+	task.InstanceID = strconv.FormatUint(instanceID, 10)
 
 	if _, err := tx.Put(taskKey, &task); err != nil {
 		log.Fatalf("tx.Put: %v", err)

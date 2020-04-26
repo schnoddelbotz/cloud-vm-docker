@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
+	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 	"github.com/spf13/cobra"
+	"log"
 )
 
 // logsCmd represents the logs command
@@ -11,8 +12,14 @@ var logsCmd = &cobra.Command{
 	Use:   "logs",
 	Short: "Downloads or prints VM logs",
 	Long:  `download and print VM logs by task UUID`,
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("logs called")
+		// todo! vm name (aka vmID, string) vs. GCE instance id (uint64)
+		var vmID uint64 = 3517187272
+		g := settings.EnvironmentToGoogleSettings(true)
+		log.Printf("DEBUG:\n VM LogLink: %s\n ContainerLogLink: %s",
+			cloud.GetLogLinkForVM(g.ProjectID, vmID),
+			cloud.GetLogLinkForContainer(g.ProjectID, vmID, "aaa-blah-test"))
 	},
 }
 

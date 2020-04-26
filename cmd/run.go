@@ -2,10 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/schnoddelbotz/cloud-vm-docker/api_client"
 	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
@@ -26,16 +29,27 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 		g := settings.EnvironmentToGoogleSettings(false)
 		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
 			viper.GetString(settings.FlagEntryPoint), g.VMType)
-		endpoint := cloud.GetEndpoint(viper.GetString(settings.FlagProject), viper.GetString(settings.FlagRegion))
-		client := cloud.NewCFNClient(endpoint, viper.GetString(settings.FlagToken))
+		endpoint := api_client.GetEndpoint(viper.GetString(settings.FlagProject), viper.GetString(settings.FlagRegion))
+		client := api_client.NewCFNClient(endpoint, viper.GetString(settings.FlagToken))
 
 		taskData, err := client.Run(*taskArguments)
 		if err != nil {
 			return fmt.Errorf("ERROR running TaskArguments: %v", err)
 		}
 
+		instanceID, err := strconv.ParseUint(taskData.InstanceID, 10, 64)
+		log.Printf("VM logs: %s", cloud.GetLogLinkForVM(g.ProjectID, instanceID))
+
 		if !viper.GetBool(settings.FlagDetached) {
-			client.WaitForDoneStatus(taskData.VMID)
+			task := client.WaitForDoneStatus(taskData.VMID)
+			instanceID, err := strconv.ParseUint(task.InstanceID, 10, 64)
+			if err != nil {
+				log.Fatalf("Oops, unable to convert instanceID %s to uint64: %s", task.InstanceID, err)
+			}
+			log.Printf("Docker container logs: %s", cloud.GetLogLinkForContainer(g.ProjectID, instanceID, task.DockerContainerId))
+			log.Printf("Docker container exit code: %d", task.DockerExitCode)
+		} else {
+			println(taskData.VMID)
 		}
 
 		return nil
