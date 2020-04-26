@@ -74,6 +74,13 @@ var createCmd = &cobra.Command{
 			if t.DockerExitCode != 0 {
 				return fmt.Errorf("task exited with non-zero return code %d", t.DockerExitCode)
 			}
+
+			if viper.GetBool(settings.FlagPrintLogs) {
+				log.Printf("WAITING another 10 seconds for logs to appear in StackDriver...")
+				time.Sleep(10 * time.Second)
+				log.Printf("Logs from StackDriver:")
+				cloud.PrintLogEntries(g.ProjectID, t.InstanceID, t.DockerContainerId)
+			}
 		}
 
 		// TODO: Now print('ssh cloud-vm-docker@IP')
@@ -92,11 +99,13 @@ func init() {
 	flags.StringP(settings.FlagSSHPublicKey, "s", "", "SSH public key to put on VM (default ~/.ssh/*.pub)")
 	flags.BoolP(settings.FlagNoSSH, "n", false, "disable SSH public key install [notyet]")
 	flags.BoolP(settings.FlagWait, "w", false, "wait until command completes / VM shuts down")
+	flags.BoolP(settings.FlagPrintLogs, "P", false, "print (last 512 lines of) container logs (requires --wait)")
 
 	viper.BindPFlag(settings.FlagVMType, createCmd.Flags().Lookup(settings.FlagVMType))
 	viper.BindPFlag(settings.FlagSSHPublicKey, createCmd.Flags().Lookup(settings.FlagSSHPublicKey))
 	viper.BindPFlag(settings.FlagNoSSH, createCmd.Flags().Lookup(settings.FlagNoSSH))
 	viper.BindPFlag(settings.FlagWait, createCmd.Flags().Lookup(settings.FlagWait))
+	viper.BindPFlag(settings.FlagPrintLogs, createCmd.Flags().Lookup(settings.FlagPrintLogs))
 
 	// add wait flag to wait for spin-up?
 

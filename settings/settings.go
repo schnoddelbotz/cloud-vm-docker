@@ -41,6 +41,10 @@ const (
 	FlagWait = "wait"
 	// FlagToken is the access token for CloudVMDocker HTTP CloudFunction for run/ps/...
 	FlagToken = "token"
+	// FlagVerbose is just a bool here
+	FlagVerbose = "verbose"
+	// FlagPrintLogs en/disables printing logs after waiting for VM/Docker completion
+	FlagPrintLogs = "print-logs"
 
 	// FlagSSHPublicKey can be deployed on VM instance
 	FlagSSHPublicKey = "ssh-public-key"

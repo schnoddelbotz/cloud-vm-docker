@@ -36,6 +36,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP(settings.FlagProject, "p", "", "google cloud project to work within")
 	rootCmd.PersistentFlags().StringP(settings.FlagZone, "z", "europe-west1-b", "google cloud zone for VMs")
 	rootCmd.PersistentFlags().StringP(settings.FlagRegion, "r", "europe-west1", "google cloud region for CloudFunctions")
+	rootCmd.PersistentFlags().BoolP(settings.FlagVerbose, "V", false, "enable verbose/debug output of cloud-vm-docker")
 	rootCmd.Flags().BoolP("verbose", "v", false, "verbose operations")
 
 	/// DUP!!! lives in settings.go, too FIXME?
@@ -46,7 +47,7 @@ func init() {
 	viper.BindPFlag(settings.FlagProject, rootCmd.PersistentFlags().Lookup(settings.FlagProject))
 	viper.BindPFlag(settings.FlagRegion, rootCmd.PersistentFlags().Lookup(settings.FlagRegion))
 	viper.BindPFlag(settings.FlagZone, rootCmd.PersistentFlags().Lookup(settings.FlagZone))
-
+	viper.BindPFlag(settings.FlagVerbose, rootCmd.PersistentFlags().Lookup(settings.FlagVerbose))
 }
 
 // initConfig reads in config file and ENV variables if set.

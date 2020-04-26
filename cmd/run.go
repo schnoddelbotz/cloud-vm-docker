@@ -38,14 +38,13 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 		}
 
 		instanceID, err := strconv.ParseUint(taskData.InstanceID, 10, 64)
+		if err != nil {
+			log.Fatalf("Oops, unable to convert instanceID %s to uint64: %s", taskData.InstanceID, err)
+		}
 		log.Printf("VM logs: %s", cloud.GetLogLinkForVM(g.ProjectID, instanceID))
 
 		if !viper.GetBool(settings.FlagDetached) {
 			task := client.WaitForDoneStatus(taskData.VMID)
-			instanceID, err := strconv.ParseUint(task.InstanceID, 10, 64)
-			if err != nil {
-				log.Fatalf("Oops, unable to convert instanceID %s to uint64: %s", task.InstanceID, err)
-			}
 			log.Printf("Docker container logs: %s", cloud.GetLogLinkForContainer(g.ProjectID, instanceID, task.DockerContainerId))
 			log.Printf("Docker container exit code: %d", task.DockerExitCode)
 		} else {

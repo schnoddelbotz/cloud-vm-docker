@@ -4,22 +4,35 @@ import (
 	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"log"
+	"strconv"
 )
 
-// logsCmd represents the logs command
+// logsCmd represents the logs command, yay!
 var logsCmd = &cobra.Command{
 	Use:   "logs",
 	Short: "Downloads or prints VM logs",
 	Long:  `download and print VM logs by task UUID`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		// todo! vm name (aka vmID, string) vs. GCE instance id (uint64)
-		var vmID uint64 = 3517187272
+		vmID := args[0]
 		g := settings.EnvironmentToGoogleSettings(true)
-		log.Printf("DEBUG:\n VM LogLink: %s\n ContainerLogLink: %s",
-			cloud.GetLogLinkForVM(g.ProjectID, vmID),
-			cloud.GetLogLinkForContainer(g.ProjectID, vmID, "aaa-blah-test"))
+
+		task, err := cloud.GetTask(g.ProjectID, vmID)
+		if err != nil {
+			log.Fatalf("Unable to get task data for vm_id %s: %s", vmID, err)
+		}
+		instanceID, err := strconv.ParseUint(task.InstanceID, 10, 64)
+		if err != nil {
+			log.Fatalf("Oops, unable to convert instanceID %s to uint64: %s", task.InstanceID, err)
+		}
+		if viper.GetBool(settings.FlagVerbose) {
+			log.Printf("VM Logs    : %s", cloud.GetLogLinkForVM(g.ProjectID, instanceID))
+			log.Printf("Docker Logs: %s", cloud.GetLogLinkForContainer(g.ProjectID, instanceID, task.DockerContainerId))
+		}
+
+		cloud.PrintLogEntries(g.ProjectID, task.InstanceID, task.DockerContainerId)
 	},
 }
 

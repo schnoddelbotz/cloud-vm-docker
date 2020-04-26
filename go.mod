@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	cloud.google.com/go v0.38.0
+	github.com/golang/protobuf v1.3.2
 	github.com/googleapis/gax-go v1.0.3 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v0.0.7
