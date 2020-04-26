@@ -1,6 +1,9 @@
 package settings
 
 import (
+	"crypto/rand"
+	"fmt"
+	"log"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -16,6 +19,7 @@ type GoogleSettings struct {
 	DisableSSH                 bool
 	VMPostDockerRunTargetState string // should become: SHUTDOWN | DELETE | KEEP
 	DataStoreCollection        string
+	AccessToken                string // access protects the HTTP CFN
 }
 
 const (
@@ -35,6 +39,8 @@ const (
 	FlagEntrypoint = "entrypoint"
 	// FlagWait tells run command to wait until container completed
 	FlagWait = "wait"
+	// FlagToken is the access token for CloudVMDocker HTTP CloudFunction for run/ps/...
+	FlagToken = "token"
 
 	// FlagSSHPublicKey can be deployed on VM instance
 	FlagSSHPublicKey = "ssh-public-key"
@@ -49,16 +55,30 @@ const (
 )
 
 // EnvironmentToGoogleSettings translates environment variables into a GoogleSettings struct.
-func EnvironmentToGoogleSettings() GoogleSettings {
+func EnvironmentToGoogleSettings(permitEmptyToken bool) GoogleSettings {
 	viper.AutomaticEnv()
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
 	viper.SetEnvPrefix("CVD")
+	accessToken := viper.GetString(FlagToken)
+	if accessToken == "" {
+		b := make([]byte, 16)
+		_, err := rand.Read(b)
+		if err != nil {
+			log.Fatal(err)
+		}
+		accessToken = fmt.Sprintf("t%x", b[0:5])
+		if !permitEmptyToken {
+			log.Fatalf("ERROR! Empty CVD_TOKEN not permitted. Define via env or --token ...")
+		}
+		log.Printf("Warning! Empty CVD_TOKEN -- generated random one for use: %s", accessToken)
+	}
 	s := GoogleSettings{
 		ProjectID:                  viper.GetString(FlagProject),
 		Zone:                       viper.GetString(FlagZone),
 		Region:                     viper.GetString(FlagRegion),
 		VMType:                     viper.GetString(FlagVMType),
+		AccessToken:                accessToken,
 		SSHPublicKey:               viper.GetString(FlagSSHPublicKey),
 		DisableSSH:                 viper.GetBool(FlagNoSSH),
 		VMPostDockerRunTargetState: "",                  // notyet

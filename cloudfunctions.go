@@ -17,7 +17,7 @@ func init() {
 	log.SetFlags(0)
 
 	// import environment vars, using same defaults as CLI
-	googleSettings := settings.EnvironmentToGoogleSettings()
+	googleSettings := settings.EnvironmentToGoogleSettings(true)
 	log.Printf("CLOUD-VM-DOCKER initialized with settings from env: %v", googleSettings)
 
 	// we initialize all clients here, albeit different needs of CFNs. Solve.

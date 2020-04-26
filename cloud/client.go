@@ -1,10 +1,17 @@
 package cloud
 
-import "log"
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"time"
+)
 
 // client for HTTP CFN endpoint
-// NewClient(endpoint,token) *Client
-// func (c *Client) Run(task) (Task, err)
+// TODO:
 // func (c *Client) Delete(task) err
 // func (c *Client) GetStatus(task_id) (Task, err)
 // func (c *Client) ListTasks() (Tasks, err)
@@ -16,16 +23,105 @@ import "log"
 type CFNClient struct {
 	Endpoint    string
 	AccessToken string
+	HTTPClient  *http.Client
 }
 
+// NewCFNClient gives a new client for followup CloudFunction requests
 func NewCFNClient(endpoint, accessToken string) *CFNClient {
-	return &CFNClient{
+	client := &CFNClient{
 		Endpoint:    endpoint,
 		AccessToken: accessToken,
 	}
+	client.HTTPClient = &http.Client{
+		//CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		//	return http.ErrUseLastResponse
+		//},
+	}
+	return client
 }
 
+// GetEndpoint returns the HTTP URL of deployed CloudVMDocker CloudFunction, based on project and region
+func GetEndpoint(project, region string) string {
+	if project == "" {
+		log.Fatalf("Cannot create CFN HTTP Client without --project")
+	}
+	if region == "" {
+		log.Fatalf("Cannot create CFN HTTP Client without --region")
+	}
+	return fmt.Sprintf("https://%s-%s.cloudfunctions.net/CloudVMDocker", region, project)
+}
+
+// Run submits a Docker task to run in the cloud to HTTP CloudFunction endpoint
 func (c *CFNClient) Run(taskArgs TaskArguments) (Task, error) {
 	log.Printf("CFNClient running on %s with taskArgs %v", c.Endpoint, taskArgs)
-	return Task{}, nil
+	requestBody, err := json.Marshal(taskArgs)
+	if err != nil {
+		log.Fatalf("Error building requests JSON: %s", err)
+	}
+	requestPath := fmt.Sprintf("run/%s/%s", taskArgs.VMID, taskArgs.VMType)
+	responseBody, err := c.executeClientRequest("POST", requestPath, requestBody)
+	if err != nil {
+		log.Fatalf("Error submitting request: %s", err)
+	}
+	var task Task
+	err = json.Unmarshal(responseBody, &task)
+	if err != nil {
+		log.Printf("Unmarshalling response failed: %s", err)
+	}
+	log.Printf("SUCCESS: Got and returning task: %v", task)
+	return task, nil
+}
+
+func (c *CFNClient) WaitForDoneStatus(vmID string) (exitCode int) {
+	var task Task
+	status := "unknown"
+	requestPath := fmt.Sprintf("status/%s/", vmID)
+
+	log.Printf("Waiting for DONE status of VM %s", vmID)
+	for status != "DONE" {
+		body, err := c.executeClientRequest("GET", requestPath, []byte{})
+		if err != nil {
+			log.Fatalf("ClientERR: %s", err)
+		}
+		err = json.Unmarshal(body, &task)
+		if err != nil {
+			log.Fatalf("Client JSON ERR: %s", err)
+		}
+		if status != task.Status {
+			log.Printf("Status change: %s -> %s", status, task.Status)
+		}
+		status = task.Status
+		if status != "DONE" {
+			time.Sleep(30 * time.Second)
+		}
+	}
+	log.Printf("SUCCESS waiting for DONE status of VM %s", vmID)
+
+	exitCode = task.DockerExitCode
+	log.Printf("VM DOCKER EXIT CODE: %d", exitCode)
+	return
+}
+
+func (c *CFNClient) executeClientRequest(method, path string, requestBody []byte) ([]byte, error) {
+	url := fmt.Sprintf("%s/%s", c.Endpoint, path)
+	requestBodyReader := bytes.NewReader(requestBody)
+	request, err := http.NewRequest(method, url, requestBodyReader)
+	if err != nil {
+		log.Fatalf("Client failed: %s", err)
+		return []byte{}, err
+	}
+	request.Header.Set("X-Authorization", c.AccessToken)
+	request.Header.Set("Content-type", "application/json")
+
+	response, err := c.HTTPClient.Do(request)
+	if err != nil {
+		log.Fatalf("Client failed: %s", err)
+	}
+	if response.StatusCode != 200 {
+		log.Printf("Client got non-200 response: %d", response.StatusCode)
+		log.Printf("LOC: %s", response.Header)
+		// 302: redirect by google to auth page, if CFN is not deployed or not public
+	}
+	responseBody, err := ioutil.ReadAll(response.Body)
+	return responseBody, err
 }

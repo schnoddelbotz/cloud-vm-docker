@@ -20,7 +20,7 @@ var createCmd = &cobra.Command{
 	Args:         cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		g := settings.EnvironmentToGoogleSettings()
+		g := settings.EnvironmentToGoogleSettings(true)
 		//e := handlers.NewEnvironment(g, false, true, true)
 
 		image := args[0]

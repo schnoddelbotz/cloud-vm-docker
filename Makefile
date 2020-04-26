@@ -7,6 +7,7 @@ LDFLAGS := -X github.com/schnoddelbotz/cloud-vm-docker/cmd.AppVersion=$(VERSION)
 
 GO_SOURCES := */*.go */*/*.go
 
+CVD_ADMIN_TOKEN ?= FIXME-REPLACE-ME-DURING-DEPLOYMENT
 
 build: $(BINARY)
 
@@ -36,7 +37,7 @@ coverage: clean
 deploy_gcp: test clean
 	gcloud functions deploy CloudVMDocker --region=europe-west1 --runtime go113 \
  		--trigger-http --allow-unauthenticated --project=$(CVD_PROJECT) \
- 		--set-env-vars=CVD_DATASTORE_COLLECTION=cloud-vm-docker-test,CVD_PROJECT=$(CVD_PROJECT)
+ 		--set-env-vars=CVD_DATASTORE_COLLECTION=cloud-vm-docker-test,CVD_PROJECT=$(CVD_PROJECT),CVD_TOKEN=$(CVD_ADMIN_TOKEN)
 
 docker_image: clean
 	docker build -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .

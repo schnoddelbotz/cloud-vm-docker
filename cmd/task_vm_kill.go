@@ -17,7 +17,7 @@ var killCmd = &cobra.Command{
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		instanceName := args[0]
-		g := settings.EnvironmentToGoogleSettings()
+		g := settings.EnvironmentToGoogleSettings(true)
 		if err := cloud.DeleteInstanceByName(g, instanceName); err != nil {
 			return err
 		}

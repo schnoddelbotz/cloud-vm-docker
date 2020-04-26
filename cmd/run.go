@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -22,14 +23,21 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 		if len(args) > 1 {
 			command = args[1:]
 		}
-		g := settings.EnvironmentToGoogleSettings()
+		g := settings.EnvironmentToGoogleSettings(false)
 		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
 			viper.GetString(settings.FlagEntryPoint), g.VMType)
-		client := cloud.NewCFNClient("", "")
-		_, err := client.Run(*taskArguments)
+		endpoint := cloud.GetEndpoint(viper.GetString(settings.FlagProject), viper.GetString(settings.FlagRegion))
+		client := cloud.NewCFNClient(endpoint, viper.GetString(settings.FlagToken))
+
+		taskData, err := client.Run(*taskArguments)
 		if err != nil {
 			return fmt.Errorf("ERROR running TaskArguments: %v", err)
 		}
+
+		if !viper.GetBool(settings.FlagDetached) {
+			client.WaitForDoneStatus(taskData.VMID)
+		}
+
 		return nil
 	},
 }
@@ -38,12 +46,13 @@ func init() {
 	// https://github.com/docker/cli/blob/master/cli/command/container/run.go
 	flags := runCmd.Flags()
 	flags.SetInterspersed(false)
-	flags.StringP(settings.FlagDetached, "d", "detach", "Run container in background and print container ID")
-	flags.StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
-	flags.BoolP(settings.FlagWait, "w", false, "wait until command completes / VM shuts down")
 
-	viper.BindPFlag(settings.FlagWait, runCmd.Flags().Lookup(settings.FlagWait))
+	flags.BoolP(settings.FlagDetached, "d", false, "Start and directly return container ID (and quit)")
+	flags.StringP(settings.FlagToken, "t", "", "CloudVMDocker HTTP CloudFunction access token")
+	flags.StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
+
 	viper.BindPFlag(settings.FlagDetached, runCmd.Flags().Lookup(settings.FlagDetached))
+	viper.BindPFlag(settings.FlagToken, runCmd.Flags().Lookup(settings.FlagToken))
 	viper.BindPFlag(settings.FlagVMType, runCmd.Flags().Lookup(settings.FlagVMType))
 
 	rootCmd.AddCommand(runCmd)
