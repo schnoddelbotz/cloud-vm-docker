@@ -3,7 +3,6 @@ package cloud
 import (
 	"context"
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
 
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
@@ -44,20 +44,26 @@ func ListTasks(projectID string) {
 	docList := make([]Task, 0)
 
 	// todo: add filter (-a arg), sorting, FIX CREATED OUTPUT
-	tasksRef, err := client.Collection(settings.FireStoreCollection).
+	iter := client.Collection(settings.FireStoreCollection).
 		OrderBy("CreatedAt", firestore.Asc).
 		//Limit(25). // FIXME: no-constant-magic ... make user flag
-		Documents(ctx).GetAll()
-	if err != nil {
-		log.Fatalf("Error: %s", err)
-	}
-	for _, i := range tasksRef {
-		t, err := fireStoreDataToTask(i.Data())
+		Documents(ctx)
+	defer iter.Stop()
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
 		if err != nil {
-			log.Printf("FireStore data (%v) error: %s", t, err)
+			log.Fatalf("FireStore iterator boom: %s", err)
+		}
+
+		var task Task
+		if err := doc.DataTo(&task); err != nil {
+			log.Printf("FireStore data error: %s", err)
 			continue
 		}
-		docList = append(docList, t)
+		docList = append(docList, task)
 	}
 
 	// todo: dynamically check/set required field width -- and/or add flag: disable shortening below...
@@ -137,22 +143,28 @@ func GetTask(projectID, vmID string) (Task, error) {
 	if err != nil {
 		return Task{}, err
 	}
-	task, err = fireStoreDataToTask(d.Data())
-	if err != nil {
+	if err := d.DataTo(&task); err != nil {
 		log.Fatalf("Ooops. Cannot convert FireStore data to task %s: %s", vmID, err)
 	}
 	return task, err
 }
 
-func fireStoreDataToTask(dict map[string]interface{}) (Task, error) {
-	// this feels wrong from the start. fixme.
-	var task Task
-	jsonbody, err := json.Marshal(dict)
+// WaitForTaskDone should use FireStore realtime updates to be notified on updates ...
+func WaitForTaskDone(projectID, vmID string) error {
+	task, err := GetTask(projectID, vmID)
 	if err != nil {
-		return task, err
+		return err
 	}
-	err = json.Unmarshal(jsonbody, &task)
-	return task, err
+	if task.Status == "DONE" {
+		log.Printf("Found DONE status for task on initial FireStore load request")
+		return nil
+	}
+
+	ctx := context.Background()
+	client := NewFireStoreClient(ctx, projectID)
+	docRef := client.Collection(settings.FireStoreCollection).Doc(vmID)
+	log.Printf("TODO: Wait for docRef %v updates", docRef)
+	return nil
 }
 
 func generateTaskName(task TaskArguments) string {

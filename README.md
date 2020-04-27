@@ -153,6 +153,7 @@ VMs
 
 FireStore
 
+- https://pkg.go.dev/cloud.google.com/go/firestore?tab=doc
 - https://github.com/GoogleCloudPlatform/golang-samples/blob/master/firestore/firestore_snippets/query.go
 
 Operations

@@ -1,7 +1,9 @@
 package cmd
 
 import (
-	"fmt"
+	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
+	"github.com/schnoddelbotz/cloud-vm-docker/settings"
+	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -10,11 +12,15 @@ import (
 var waitCmd = &cobra.Command{
 	Use:   "wait",
 	Short: "Waits for completion of a cloud-vm-docker-managed task to complete",
-	Long:  `useful for pausing workflows that depend on task results`,
+	Long:  `useful for pausing workflows that depend on task results; same as --wait on task-vm or not using -d on run`,
+	Args:  cobra.RangeArgs(1, 1), //  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("wait called ... should wait for one or more VMs to report COMPLETED_*")
-		// verbose should tell which tasks found in which state...
-		// this is a pure datastore op... but could be http-cfn'ed as well
+		vmID := args[0]
+		g := settings.EnvironmentToGoogleSettings(true)
+		err := cloud.WaitForTaskDone(g.ProjectID, vmID)
+		if err != nil {
+			log.Fatalf("Unable to wait for task of vm_id %s: %s", vmID, err)
+		}
 	},
 }
 
