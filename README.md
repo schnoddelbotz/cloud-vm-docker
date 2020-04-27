@@ -67,9 +67,9 @@ Why bother with cloud-vm-docker? Because ...
 ## how does it work(flow)?
 
 - Task submission (via curl against HTTP CFN or `cloud-vm-docker run`)
-- Alternatively, `cloud-vm-docker task-vm create ...` will bypass above http cfn and spin GCE VM + save DataStore record
+- Alternatively, `cloud-vm-docker task-vm create ...` will bypass above http cfn and spin GCE VM + save FireStore record
 - VM is set up with a `cloudservice` systemd service, which will ...
-  - PreStart: curl-CFN to update task status in datastore to BOOTED
+  - PreStart: curl-CFN to update task status in firestore to BOOTED
   - Start: run your container!
   - Post: curl-CFN to [update task status to EXITED] and DELETE the VM itself
 - Furthermore, VM is set up to ...
@@ -111,7 +111,7 @@ source testenv.inc.sh
 make deploy_gcp
 make clean test build
 
-# this creates a VM directly (via Google Compute API + DataStore, using local GOOGLE_APPLICATION_CREDENTIALS)
+# this creates a VM directly (via Google Compute API + FireStore, using local GOOGLE_APPLICATION_CREDENTIALS)
 ./cloud-vm-docker task-vm create busybox sh -c 'echo hello world ; sleep 120 ; echo goodnight'
 
 # ^^ notice:
@@ -126,7 +126,7 @@ curl -H'X-Authorization: YOUR_TOKEN' https://your-cfn-endpoint.cloudfunctions.ne
   -H'Content-type: application/json' \
   -d@'{"image":"busybox", "command":["sh", "-c", "echo", "hello", "world"]}'
 
-# list VMs as stored in dataStore
+# list VMs as stored in FireStore
 ./cloud-vm-docker ps
 
 # this should be ./cloud-vm-docker ssh ... but, for now, look up IP in console[FIXME].
@@ -151,10 +151,9 @@ VMs
 - https://cloudinit.readthedocs.io/en/latest/index.html
 - https://www.freedesktop.org/software/systemd/man/systemd.service.html
 
-DataStore
+FireStore
 
-- https://cloud.google.com/datastore/docs/reference/libraries
-- https://cloud.google.com/datastore/docs/concepts/queries
+- https://github.com/GoogleCloudPlatform/golang-samples/blob/master/firestore/firestore_snippets/query.go
 
 Operations
 
@@ -163,10 +162,10 @@ Operations
 ## TODO
 
 - tests, tests, tests
-- DataStore: updates -- status updates via CFN (see cloud_init), or after `task-vm kill ...`
+- FireStore: updates -- status updates via CFN (see cloud_init), or after `task-vm kill ...`
 - have some monitoring dashboard web endpoint using `status` data + google monitoring/logs links ...
 - or update some google-hosted dashboard to add/remove machines as they come/run/go(history)
-- https://cloud.google.com/compute/docs/storing-retrieving-metadata --> put VM meta in DataStore / partially?
+- https://cloud.google.com/compute/docs/storing-retrieving-metadata --> put VM meta in FireStore / partially?
   ```bash
   curl -H'Metadata-Flavor:Google' "http://metadata.google.internal/computeMetadata/v1/instance/"curl -H'Metadata-Flavor:Google' "http://metadata.google.internal/computeMetadata/v1/instance/"
   curl -H'Metadata-Flavor:Google' "http://metadata.google.internal/computeMetadata/v1/instance/attributes/user-data"
@@ -178,3 +177,7 @@ Operations
 - allow alternate VM disk images? custom cloud_init? custom network? labels? svcAccount (or roles to add to default)?
 - have some simple dashboard ('docker ps++') served via http cfn?
 - in theory, even with failed mgmt request, VM should be shut down via `shutdown` command, but service is run as non-root user ...
+- for `--wait`, do not poll data store! https://firebase.google.com/docs/firestore/query-data/listen
+- for `--wait`, it should pull/print logs automatically if non-zero exit code
+- so much err handling/responses
+- any non-zero Docker run exit code will result in exit(1) - it should return Docker exit code [cobra]

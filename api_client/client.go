@@ -18,7 +18,7 @@ import (
 // func (c *Client) ListTasks() (Tasks, err)
 
 // The client should also be usable as curl alternative for containers to report status/progress
-// idea: if nothing was reported back, try to fetch last line of stackdriver output of container -> DataStore.LastMsg
+// idea: if nothing was reported back, try to fetch last line of stackdriver output of container -> FireStore.LastMsg
 
 // CFNClient holds infos required to act as client to cloud-vm-docker HTTP cloud function
 type CFNClient struct {

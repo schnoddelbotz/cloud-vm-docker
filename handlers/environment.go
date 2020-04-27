@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 
-	"cloud.google.com/go/datastore"
+	"cloud.google.com/go/firestore"
 	"google.golang.org/api/compute/v1"
 
 	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
@@ -14,19 +14,19 @@ import (
 type Environment struct {
 	GoogleSettings  settings.GoogleSettings
 	Context         context.Context
-	DataStoreClient *datastore.Client
+	FireStoreClient *firestore.Client
 	ComputeService  *compute.Service
 }
 
 // NewEnvironment creates google service clients as requested
-func NewEnvironment(googleSettings settings.GoogleSettings, withDataStoreClient bool, withComputeService bool) *Environment {
-	var dataStoreClient *datastore.Client
+func NewEnvironment(googleSettings settings.GoogleSettings, withFireStoreClient bool, withComputeService bool) *Environment {
+	var dataStoreClient *firestore.Client
 	var computeService *compute.Service
 
 	eContext := context.Background()
 
-	if withDataStoreClient {
-		dataStoreClient = cloud.NewDataStoreClient(eContext, googleSettings.ProjectID)
+	if withFireStoreClient {
+		dataStoreClient = cloud.NewFireStoreClient(eContext, googleSettings.ProjectID)
 	}
 	if withComputeService {
 		computeService, _ = cloud.NewComputeService()
@@ -35,7 +35,7 @@ func NewEnvironment(googleSettings settings.GoogleSettings, withDataStoreClient 
 	return &Environment{
 		GoogleSettings:  googleSettings,
 		Context:         eContext,
-		DataStoreClient: dataStoreClient,
+		FireStoreClient: dataStoreClient,
 		ComputeService:  computeService,
 	}
 }

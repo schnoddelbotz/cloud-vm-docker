@@ -18,7 +18,7 @@ type GoogleSettings struct {
 	SSHPublicKey               string
 	DisableSSH                 bool
 	VMPostDockerRunTargetState string // should become: SHUTDOWN | DELETE | KEEP
-	DataStoreCollection        string
+	FireStoreCollection        string
 	AccessToken                string // access protects the HTTP CFN
 }
 
@@ -86,7 +86,7 @@ func EnvironmentToGoogleSettings(permitEmptyToken bool) GoogleSettings {
 		SSHPublicKey:               viper.GetString(FlagSSHPublicKey),
 		DisableSSH:                 viper.GetBool(FlagNoSSH),
 		VMPostDockerRunTargetState: "",                  // notyet
-		DataStoreCollection:        FireStoreCollection, // fixme: static for now
+		FireStoreCollection:        FireStoreCollection, // fixme: static for now
 	}
 	return s
 }

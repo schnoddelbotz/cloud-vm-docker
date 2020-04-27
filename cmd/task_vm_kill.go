@@ -21,7 +21,7 @@ var killCmd = &cobra.Command{
 		if err := cloud.DeleteInstanceByName(g, instanceName); err != nil {
 			return err
 		}
-		// FIXME! The public Delete function should also update DataStore!
+		// FIXME! The public Delete function should also update FireStore!
 		fmt.Println(instanceName)
 		return nil
 	},

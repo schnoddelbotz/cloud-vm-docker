@@ -3,13 +3,14 @@ package cloud
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"time"
 
-	"cloud.google.com/go/datastore"
+	"cloud.google.com/go/firestore"
 
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
 )
@@ -19,9 +20,7 @@ import (
 // StoreNewTask saves a new task in FireStore DB.
 func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 	ctx := context.Background()
-	client := NewDataStoreClient(ctx, projectID)
-	// Sets the name/ID for the new entity. // DocumentName / ID
-	taskKey := datastore.NameKey(settings.FireStoreCollection, taskArguments.VMID, nil)
+	client := NewFireStoreClient(ctx, projectID)
 	doc := Task{
 		Status:          TaskStatusCreated,
 		TaskArguments:   taskArguments,
@@ -30,31 +29,39 @@ func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 		DockerExitCode:  -1,
 		ManagementToken: generateManagementToken(),
 	}
-
 	// Saves the new entity.
-	if _, err := client.Put(ctx, taskKey, &doc); err != nil {
+	if _, err := client.Collection(settings.FireStoreCollection).Doc(taskArguments.VMID).Set(ctx, doc); err != nil {
 		log.Fatalf("Failed to save doc: %v", err)
 	}
-
-	log.Printf("Saved %v: %v\n", taskKey, doc.Status)
+	log.Printf("Saved %v: %v", taskArguments.VMID, doc.Status)
 	return doc
 }
 
-// ListTasks provides 'docker ps' functionality by querying DataStore
+// ListTasks provides 'docker ps' functionality by querying FireStore
 func ListTasks(projectID string) {
 	ctx := context.Background() // fixme pass in
-	client := NewDataStoreClient(ctx, projectID)
+	client := NewFireStoreClient(ctx, projectID)
 	docList := make([]Task, 0)
 
 	// todo: add filter (-a arg), sorting, FIX CREATED OUTPUT
-	q := datastore.NewQuery(settings.FireStoreCollection) //.Order("CreatedAt") -- requires Index
-	_, err := client.GetAll(ctx, q, &docList)
+	tasksRef, err := client.Collection(settings.FireStoreCollection).
+		OrderBy("CreatedAt", firestore.Asc).
+		//Limit(25). // FIXME: no-constant-magic ... make user flag
+		Documents(ctx).GetAll()
 	if err != nil {
-		log.Fatalf("Failed to list: %v", err)
+		log.Fatalf("Error: %s", err)
+	}
+	for _, i := range tasksRef {
+		t, err := fireStoreDataToTask(i.Data())
+		if err != nil {
+			log.Printf("FireStore data (%v) error: %s", t, err)
+			continue
+		}
+		docList = append(docList, t)
 	}
 
 	// todo: dynamically check/set required field width -- and/or add flag: disable shortening below...
-	//now := time.Now()
+	// todo: add --long option to  ...include console log links?  ...include live gce vm state?
 	outputFormat := "%-12s %-23s %-40s %-14s %s\n"
 	fmt.Printf(outputFormat, "VM_ID", "IMAGE", "COMMAND", "CREATED", "STATUS")
 	for _, doc := range docList {
@@ -69,9 +76,9 @@ func ListTasks(projectID string) {
 	// log.Printf("Got %d tasks as response, showed X, 3 running, 2 deleted.", len(something = client.GetAll retval))
 }
 
-// NewDataStoreClient returns a dataStore client and its context, exits fatally on error
-func NewDataStoreClient(ctx context.Context, projectID string) *datastore.Client {
-	client, err := datastore.NewClient(ctx, projectID)
+// NewFireStoreClient returns a dataStore client and its context, exits fatally on error
+func NewFireStoreClient(ctx context.Context, projectID string) *firestore.Client {
+	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
@@ -81,28 +88,16 @@ func NewDataStoreClient(ctx context.Context, projectID string) *datastore.Client
 // UpdateTaskStatus sets a Task's 'status' field to given string value
 func UpdateTaskStatus(projectID, vmID, status string, exitCode ...int) error {
 	log.Printf("UpdateTaskStatus: %s -> %s", vmID, status)
-	ctx := context.Background() // fixme pass in
-	client := NewDataStoreClient(ctx, projectID)
-	tx, err := client.NewTransaction(ctx)
-	if err != nil {
-		log.Fatalf("client.NewTransaction: %v", err)
-	}
-	var task Task
-	taskKey := datastore.NameKey(settings.FireStoreCollection, vmID, nil)
-	if err := tx.Get(taskKey, &task); err != nil {
-		log.Fatalf("tx.Get: %v", err)
-	}
-
-	task.Status = status
+	ctx := context.Background()
+	client := NewFireStoreClient(ctx, projectID)
+	update := map[string]interface{}{"Status": status}
 	if len(exitCode) > 0 {
-		task.DockerExitCode = exitCode[0]
+		update["DockerExitCode"] = exitCode[0]
 	}
-
-	if _, err := tx.Put(taskKey, &task); err != nil {
-		log.Fatalf("tx.Put: %v", err)
-	}
-	if _, err := tx.Commit(); err != nil {
-		log.Fatalf("tx.Commit: %v", err)
+	_, err := client.Collection(settings.FireStoreCollection).Doc(vmID).
+		Set(ctx, update, firestore.MergeAll)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -110,25 +105,12 @@ func UpdateTaskStatus(projectID, vmID, status string, exitCode ...int) error {
 // SetTaskContainerID sets a Task's 'status' field to given string value
 func SetTaskContainerID(projectID, vmID, containerID string) error {
 	log.Printf("SetTaskContainerID: %s -> %s", vmID, containerID)
-	ctx := context.Background() // fixme pass in
-	client := NewDataStoreClient(ctx, projectID)
-	tx, err := client.NewTransaction(ctx)
+	ctx := context.Background()
+	client := NewFireStoreClient(ctx, projectID)
+	_, err := client.Collection(settings.FireStoreCollection).Doc(vmID).
+		Set(ctx, map[string]interface{}{"DockerContainerId": containerID}, firestore.MergeAll)
 	if err != nil {
-		log.Fatalf("client.NewTransaction: %v", err)
-	}
-	var task Task
-	taskKey := datastore.NameKey(settings.FireStoreCollection, vmID, nil)
-	if err := tx.Get(taskKey, &task); err != nil {
-		log.Fatalf("tx.Get: %v", err)
-	}
-
-	task.DockerContainerId = containerID
-
-	if _, err := tx.Put(taskKey, &task); err != nil {
-		log.Fatalf("tx.Put: %v", err)
-	}
-	if _, err := tx.Commit(); err != nil {
-		log.Fatalf("tx.Commit: %v", err)
+		return err
 	}
 	return nil
 }
@@ -136,41 +118,45 @@ func SetTaskContainerID(projectID, vmID, containerID string) error {
 // UpdateTaskStatus sets a Task's 'status' field to given string value
 func SetTaskInstanceId(projectID, vmID string, instanceID uint64) error {
 	log.Printf("SetTaskInstanceId: VM_ID %s -> InstanceID %d", vmID, instanceID)
-	ctx := context.Background() // fixme pass in
-	client := NewDataStoreClient(ctx, projectID)
-	tx, err := client.NewTransaction(ctx)
+	ctx := context.Background()
+	client := NewFireStoreClient(ctx, projectID)
+	_, err := client.Collection(settings.FireStoreCollection).Doc(vmID).
+		Set(ctx, map[string]interface{}{"InstanceID": strconv.FormatUint(instanceID, 10)}, firestore.MergeAll)
 	if err != nil {
-		log.Fatalf("client.NewTransaction: %v", err)
-	}
-	var task Task
-	taskKey := datastore.NameKey(settings.FireStoreCollection, vmID, nil)
-	if err := tx.Get(taskKey, &task); err != nil {
-		log.Fatalf("tx.Get: %v", err)
-	}
-
-	task.InstanceID = strconv.FormatUint(instanceID, 10)
-
-	if _, err := tx.Put(taskKey, &task); err != nil {
-		log.Fatalf("tx.Put: %v", err)
-	}
-	if _, err := tx.Commit(); err != nil {
-		log.Fatalf("tx.Commit: %v", err)
+		return err
 	}
 	return nil
 }
 
-// GetTask tries to fetch given record from DataStore
+// GetTask tries to fetch given record from FireStore
 func GetTask(projectID, vmID string) (Task, error) {
 	ctx := context.Background() // fixme pass in
-	client := NewDataStoreClient(ctx, projectID)
+	client := NewFireStoreClient(ctx, projectID)
 	var task Task
-	taskKey := datastore.NameKey(settings.FireStoreCollection, vmID, nil)
-	err := client.Get(ctx, taskKey, &task)
+	d, err := client.Collection(settings.FireStoreCollection).Doc(vmID).Get(ctx)
+	if err != nil {
+		return Task{}, err
+	}
+	task, err = fireStoreDataToTask(d.Data())
+	if err != nil {
+		log.Fatalf("Ooops. Cannot convert FireStore data to task %s: %s", vmID, err)
+	}
+	return task, err
+}
+
+func fireStoreDataToTask(dict map[string]interface{}) (Task, error) {
+	// this feels wrong from the start. fixme.
+	var task Task
+	jsonbody, err := json.Marshal(dict)
+	if err != nil {
+		return task, err
+	}
+	err = json.Unmarshal(jsonbody, &task)
 	return task, err
 }
 
 func generateTaskName(task TaskArguments) string {
-	// ... WAS: as used as DataStore ID -- drop?
+	// ... WAS: as used as FireStore ID -- drop?
 	now := time.Now()
 	datePart := now.Format("2006-01-02_15:04:05")
 	return fmt.Sprintf("%s_%s", datePart, task.Image)

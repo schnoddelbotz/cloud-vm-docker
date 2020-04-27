@@ -18,7 +18,7 @@ var AppVersion = "0.0.x-dev"
 var rootCmd = &cobra.Command{
 	Use:   "cloud-vm-docker",
 	Short: "A brief description of your application",
-	Long: `cloud-vm-docker (cloud-vm-docker) runs Docker images on Google Compute Engine VMs
+	Long: `cloud-vm-docker runs Docker images on Google Compute Engine VMs
 See https://github.com/schnoddelbotz/cloud-vm-docker`,
 }
 

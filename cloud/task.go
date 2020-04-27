@@ -2,7 +2,7 @@ package cloud
 
 import "time"
 
-// Task describes structure of our FireStore/DataStore documents
+// Task describes structure of our FireStore/FireStore documents
 type Task struct {
 	// TaskArguments hold `cloud-vm-docker run` CLI arguments
 	TaskArguments TaskArguments
@@ -25,7 +25,7 @@ type Task struct {
 }
 
 const (
-	// TaskStatusCreated : initial state after creating new DataStore entry
+	// TaskStatusCreated : initial state after creating new FireStore entry
 	TaskStatusCreated = "created"
 	// TaskStatusStarted : VM was created
 	TaskStatusStarted = "started"

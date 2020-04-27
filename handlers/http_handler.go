@@ -113,7 +113,7 @@ func handleRun(w http.ResponseWriter, r *http.Request, env *Environment, vmID st
 		return
 	}
 	taskArguments := cloud.NewTaskArgumentsFromBytes(requestBody)
-	log.Printf("Writing task to DataStore: %+v", taskArguments)
+	log.Printf("Writing task to FireStore: %+v", taskArguments)
 	task := cloud.StoreNewTask(env.GoogleSettings.ProjectID, *taskArguments)
 	createOp, err := cloud.CreateVM(env.GoogleSettings, task)
 	if err != nil {
@@ -125,10 +125,10 @@ func handleRun(w http.ResponseWriter, r *http.Request, env *Environment, vmID st
 	log.Println("VM creation requested successfully, waiting for op...")
 	cloud.WaitForOperation(env.GoogleSettings.ProjectID, env.GoogleSettings.Zone, createOp.Name)
 
-	log.Printf("Saving GCE InstanceID to DataStore: %s => %d", vmID, createOp.TargetId)
+	log.Printf("Saving GCE InstanceID to FireStore: %s => %d", vmID, createOp.TargetId)
 	err = cloud.SetTaskInstanceId(env.GoogleSettings.ProjectID, vmID, createOp.TargetId)
 	if err != nil {
-		log.Printf("ARGH!!! Could not update instanceID in DataStore: %s", err)
+		log.Printf("ARGH!!! Could not update instanceID in FireStore: %s", err)
 	}
 	task.InstanceID = strconv.FormatUint(createOp.TargetId, 10)
 
@@ -169,7 +169,7 @@ func handleDelete(w http.ResponseWriter, env *Environment, vmID string, exitCode
 	}
 	err = cloud.UpdateTaskStatus(env.GoogleSettings.ProjectID, vmID, "DONE", exitCode)
 	if err != nil {
-		log.Printf("Error on DeleteInstanceByName(..., %s): Unable to update DataStore after successful VM deletion %s", vmID, err)
+		log.Printf("Error on DeleteInstanceByName(..., %s): Unable to update FireStore after successful VM deletion %s", vmID, err)
 		http.Error(w, err.Error(), 500)
 		return
 	}

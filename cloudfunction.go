@@ -1,4 +1,4 @@
-package cloudfunctions
+package cloudfunction
 
 import (
 	"log"

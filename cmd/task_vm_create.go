@@ -16,7 +16,7 @@ import (
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Creates a ComputeEngine VM instance",
-	// Does the same like run, but circumvents http cfn; creates DataStore entry and spins up GCE VM
+	// Does the same like run, but circumvents http cfn; creates FireStore entry and spins up GCE VM
 	Args:         cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -32,7 +32,7 @@ var createCmd = &cobra.Command{
 			viper.GetString(settings.FlagEntryPoint), // FIXME!!! UNUSED!!!
 			g.VMType)
 
-		log.Printf("Writing task to DataStore: %+v", taskArguments)
+		log.Printf("Writing task to FireStore: %+v", taskArguments)
 		task := cloud.StoreNewTask(g.ProjectID, *taskArguments)
 		task.SSHPubKeys = cloud.GetUserSSHPublicKeys(g.SSHPublicKey, g.DisableSSH)
 
@@ -47,7 +47,7 @@ var createCmd = &cobra.Command{
 
 		err = cloud.SetTaskInstanceId(g.ProjectID, task.VMID, createOp.TargetId)
 		if err != nil {
-			log.Printf("ARGH!!! Could not update instanceID in DataStore: %s", err)
+			log.Printf("ARGH!!! Could not update instanceID in FireStore: %s", err)
 		}
 
 		status := "submitted"
