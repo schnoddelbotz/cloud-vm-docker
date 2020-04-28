@@ -20,6 +20,7 @@ var runCmd = &cobra.Command{
 	Long: `run dockerized command on ComputeEngine VM
 Despite Usage message below, no cloud-vm-docker [flags] are supported after [COMMAND] [ARG...]`,
 	Args: cobra.MinimumNArgs(1),
+	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		image := args[0]
 		var command []string
@@ -39,7 +40,7 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 
 		instanceID, err := strconv.ParseUint(taskData.InstanceID, 10, 64)
 		if err != nil {
-			log.Fatalf("Oops, unable to convert instanceID %s to uint64: %s", taskData.InstanceID, err)
+			return fmt.Errorf("oops, unable to convert instanceID %s to uint64: %s", taskData.InstanceID, err)
 		}
 		log.Printf("VM logs: %s", cloud.GetLogLinkForVM(g.ProjectID, instanceID))
 
@@ -47,10 +48,13 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 			task := client.WaitForDoneStatus(taskData.VMID)
 			log.Printf("Docker container logs: %s", cloud.GetLogLinkForContainer(g.ProjectID, instanceID, task.DockerContainerId))
 			log.Printf("Docker container exit code: %d", task.DockerExitCode)
-		} else {
-			println(taskData.VMID)
+			if task.DockerExitCode != 0 {
+				return fmt.Errorf("non-zero exit code from container: %d", task.DockerExitCode)
+			}
+			return nil
 		}
 
+		println(taskData.VMID)
 		return nil
 	},
 }
