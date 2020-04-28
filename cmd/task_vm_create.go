@@ -55,7 +55,7 @@ var createCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-
+			log.Printf("Docker container logs: %s", cloud.GetLogLinkForContainer(g.ProjectID, createOp.TargetId, nt.DockerContainerId))
 			if viper.GetBool(settings.FlagPrintLogs) {
 				log.Printf("WAITING another 15 seconds for logs to appear in StackDriver...")
 				time.Sleep(15 * time.Second)

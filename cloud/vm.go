@@ -177,6 +177,7 @@ write_files:
         {{.Task.TaskArguments.Image}} {{.QuotedCommand}}
     ExecStop=-/usr/bin/docker stop cloud-vm-docker
     ExecStopPost=/bin/sh -c "/usr/bin/docker inspect cloud-vm-docker --format='{''{'.Id'}''}' > /tmp/cid && /usr/bin/curl -s -d@/tmp/cid -H'X-Authorization: ${MGMT_TOKEN}' ${CVD_CFN_URL}/container/${CVD_VM_ID}/set"
+    ExecStopPost=/usr/bin/sleep 15
     ExecStopPost=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/delete/${CVD_VM_ID}/${EXIT_STATUS}
 
 runcmd:
@@ -185,6 +186,9 @@ runcmd:
 - systemctl daemon-reload
 - systemctl start cloudservice.service
 ` // ATTN: Extra-careful to not put whitespace after \ for line concat above!
+
+	// FIXME: The "ExecStopPost sleep" is only needed to "ensure" stackdriver logging agent
+	//        container came up in time. Without it, logs would be lost on quickly failing containers.
 
 	// ExecStopPost=/usr/bin/curl ... ${CVD_CFN_URL}/debug/${SERVICE_RESULT}/${EXIT_CODE}/${EXIT_STATUS}
 	// --->

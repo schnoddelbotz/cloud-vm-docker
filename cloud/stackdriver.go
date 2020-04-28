@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 	"time"
 
@@ -21,8 +22,10 @@ func GetLogLinkForVM(project string, GCEInstanceID uint64) string {
 
 // GetLogLinkForContainer as GetLogLinkForVM, but filtered to specific Docker container
 func GetLogLinkForContainer(project string, GCEInstanceID uint64, containerID string) string {
-	baseLink := `https://console.cloud.google.com/logs/viewer?resource=gce_instance/instance_id/%d&project=%s&advancedFilter=resource.type="gce_instance"+jsonPayload.container_id="%s"`
-	return fmt.Sprintf(baseLink, GCEInstanceID, project, containerID)
+	filter := fmt.Sprintf(`resource.type="gce_instance" 
+jsonPayload.container_id="%s"`, containerID)
+	baseLink := `https://console.cloud.google.com/logs/viewer?resource=gce_instance/instance_id/%d&project=%s&advancedFilter=%s`
+	return fmt.Sprintf(baseLink, GCEInstanceID, project, url.QueryEscape(filter))
 }
 
 func PrintLogEntries(projectID, instanceID, containerID string, createdAt time.Time) {

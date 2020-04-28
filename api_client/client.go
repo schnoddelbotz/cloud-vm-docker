@@ -54,7 +54,8 @@ func GetEndpoint(project, region string) string {
 
 // Run submits a Docker task to run in the cloud to HTTP CloudFunction endpoint
 func (c *CFNClient) Run(taskArgs cloud.TaskArguments) (cloud.Task, error) {
-	log.Printf("CFNClient running on %s with taskArgs %v", c.Endpoint, taskArgs)
+	log.Printf("CFNClient endpoint: %s", c.Endpoint)
+	log.Printf("CFNClient args: %+v", taskArgs)
 	requestBody, err := json.Marshal(taskArgs)
 	if err != nil {
 		log.Fatalf("Error building requests JSON: %s", err)
@@ -69,7 +70,7 @@ func (c *CFNClient) Run(taskArgs cloud.TaskArguments) (cloud.Task, error) {
 	if err != nil {
 		log.Printf("Unmarshalling response failed: %s", err)
 	}
-	log.Printf("SUCCESS: Got and returning task: %v", task)
+	log.Printf("SUCCESS: Created task vm: %s (instanceID %s)", task.VMID, task.InstanceID)
 	return task, nil
 }
 
