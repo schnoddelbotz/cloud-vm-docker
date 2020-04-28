@@ -150,28 +150,63 @@ func GetTask(projectID, vmID string) (Task, error) {
 }
 
 // WaitForTaskDone should use FireStore realtime updates to be notified on updates ...
-func WaitForTaskDone(projectID, vmID string) error {
+func WaitForTaskDone(projectID, vmID string) (Task, error) {
 	task, err := GetTask(projectID, vmID)
 	if err != nil {
-		return err
+		return task, err
 	}
 	if task.Status == "DONE" {
 		log.Printf("Found DONE status for task on initial FireStore load request")
-		return nil
+		return task, nil
 	}
 
 	ctx := context.Background()
 	client := NewFireStoreClient(ctx, projectID)
-	docRef := client.Collection(settings.FireStoreCollection).Doc(vmID)
-	log.Printf("TODO: Wait for docRef %v updates", docRef)
-	return nil
-}
+	col := client.Collection(settings.FireStoreCollection) //.Doc(vmID)
+	log.Printf("Waiting for task status DONE for vmID %s which is now in status %s", vmID, task.Status)
+	//firestore.LogWatchStreams = true
+	// why is this all private...???
+	// https://github.com/googleapis/google-cloud-go/blob/master/firestore/watch.go
+	// https://stackoverflow.com/questions/51200460/how-to-listen-to-firestore-through-rpc -- THANKS, @kataras
+	iter := col.Snapshots(ctx)
+	defer iter.Stop()
+	keepGoing := true
+	for keepGoing {
+		doc, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return task, err
+		}
 
-func generateTaskName(task TaskArguments) string {
-	// ... WAS: as used as FireStore ID -- drop?
-	now := time.Now()
-	datePart := now.Format("2006-01-02_15:04:05")
-	return fmt.Sprintf("%s_%s", datePart, task.Image)
+		for _, change := range doc.Changes {
+			switch change.Kind {
+			//case firestore.DocumentRemoved:
+			//case firestore.DocumentAdded:
+			// isNew := change.Doc.CreateTime.After(task.CreatedAt)
+			case firestore.DocumentModified:
+				err := change.Doc.DataTo(&task)
+				if err != nil {
+					log.Fatalf("Cannot read task data: %e", err)
+				}
+				if task.VMID == vmID {
+					log.Printf("Change received. New status: %s", task.Status)
+					if task.Status == "DONE" {
+						log.Printf("Done waiting. Task DockerExitCode: %d", task.DockerExitCode)
+						keepGoing = false
+					}
+				} else {
+					log.Printf("Ignoring change on VMID %s (which is not me! I'm %s)", task.VMID, vmID)
+				}
+			}
+		}
+		// log.Printf("NEXT PLEASE") // -- will be passed once for every notification received
+	}
+	if task.DockerExitCode != 0 {
+		return task, fmt.Errorf("task returned with non-zero DockerExitCode: %d", task.DockerExitCode)
+	}
+	return task, nil
 }
 
 func generateVMID() string {

@@ -50,36 +50,17 @@ var createCmd = &cobra.Command{
 			log.Printf("ARGH!!! Could not update instanceID in FireStore: %s", err)
 		}
 
-		status := "submitted"
 		if viper.GetBool(settings.FlagWait) {
-			// FIXME extract ... and avoid polling if possible.
-			var t cloud.Task
-			log.Printf("Waiting for command completion now...")
-			for status != "DONE" {
-				// fixme call CFN, not DS directly???!
-				t, err = cloud.GetTask(g.ProjectID, task.VMID)
-				if err != nil {
-					log.Fatalf("Failed to poll DS: %s", err)
-				}
-				if status != t.Status {
-					log.Printf("Status changed from %s -> %s", status, t.Status)
-				}
-				status = t.Status
-				if status != "DONE" {
-					time.Sleep(30 * time.Second)
-				}
-			}
-			log.Printf("Container logs: %s", cloud.GetLogLinkForContainer(g.ProjectID, createOp.TargetId, t.DockerContainerId))
-			log.Printf("Task exit code: %d", t.DockerExitCode)
-			if t.DockerExitCode != 0 {
-				return fmt.Errorf("task exited with non-zero return code %d", t.DockerExitCode)
+			nt, err := cloud.WaitForTaskDone(g.ProjectID, task.VMID)
+			if err != nil {
+				return err
 			}
 
 			if viper.GetBool(settings.FlagPrintLogs) {
-				log.Printf("WAITING another 10 seconds for logs to appear in StackDriver...")
-				time.Sleep(10 * time.Second)
+				log.Printf("WAITING another 15 seconds for logs to appear in StackDriver...")
+				time.Sleep(15 * time.Second)
 				log.Printf("Logs from StackDriver:")
-				cloud.PrintLogEntries(g.ProjectID, t.InstanceID, t.DockerContainerId, t.CreatedAt)
+				cloud.PrintLogEntries(g.ProjectID, nt.InstanceID, nt.DockerContainerId, nt.CreatedAt)
 			}
 		}
 

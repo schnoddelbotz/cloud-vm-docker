@@ -142,6 +142,7 @@ ssh cloud-vm-docker@IP
 Google Cloud general
 
 - https://cloud.google.com/compute/docs/regions-zones#available
+- https://github.com/googleapis/google-cloud-go
 
 VMs
 
@@ -153,7 +154,8 @@ VMs
 
 FireStore
 
-- https://pkg.go.dev/cloud.google.com/go/firestore?tab=doc
+- https://pkg.go.dev/cloud.google.com/go/firestore?tab=doc missing:
+- https://github.com/googleapis/google-cloud-go/blob/master/firestore/watch.go
 - https://github.com/GoogleCloudPlatform/golang-samples/blob/master/firestore/firestore_snippets/query.go
 
 Operations
