@@ -148,9 +148,9 @@ func handleStatusGet(w http.ResponseWriter, env *Environment, vmID string) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	repsonseBody, _ := json.Marshal(task)
+	responseBody, _ := json.Marshal(task)
 	w.Header().Set("content-type", "application/json")
-	w.Write(repsonseBody)
+	w.Write(responseBody)
 }
 
 func handleDelete(w http.ResponseWriter, env *Environment, vmID string, exitCodeString string) {
@@ -167,7 +167,7 @@ func handleDelete(w http.ResponseWriter, env *Environment, vmID string, exitCode
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	err = cloud.UpdateTaskStatus(env.GoogleSettings.ProjectID, vmID, "DONE", exitCode)
+	err = cloud.UpdateTaskStatus(env.GoogleSettings.ProjectID, vmID, cloud.TaskStatusDone, exitCode)
 	if err != nil {
 		log.Printf("Error on DeleteInstanceByName(..., %s): Unable to update FireStore after successful VM deletion %s", vmID, err)
 		http.Error(w, err.Error(), 500)
@@ -195,5 +195,5 @@ func handleContainer(w http.ResponseWriter, r *http.Request, env *Environment, v
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	fmt.Fprintf(w, `Thanks for your CONTAINER request -- processed successfully .... not yet..`)
+	fmt.Fprintf(w, `Thanks for your CONTAINER request -- processed successfully ....`)
 }

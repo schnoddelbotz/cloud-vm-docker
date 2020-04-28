@@ -40,7 +40,7 @@ func WaitForOperation(project, zone, operation string) {
 		if err != nil {
 			log.Fatalf("Error getting operations: %s", err)
 		}
-		if result.Status == "DONE" {
+		if result.Status == "DONE" { // This "DONE" is NOT settings.TaskStatusDone!!
 			log.Printf("FINALLY ... found DONE status after %d seconds", waited)
 			return
 		}
@@ -76,7 +76,21 @@ func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *comput
 	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s", g.Zone, task.TaskArguments.VMType)
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + g.ProjectID
 	cloudInit := buildCloudInit(g, task)
-	//log.Fatalf("NOT now\n%s\n", cloudInit)
+	var netIf compute.NetworkInterface
+	if task.TaskArguments.Subnet == "" {
+		netIf.AccessConfigs = []*compute.AccessConfig{
+			{
+				Type: "ONE_TO_ONE_NAT",
+				Name: "External NAT",
+			},
+		}
+		netIf.Network = prefix + "/global/networks/default"
+	} else {
+		subnetFormat := "projects/%s/regions/%s/subnetworks/%s"
+		netIf.Subnetwork = fmt.Sprintf(subnetFormat, g.ProjectID, g.Region, task.TaskArguments.Subnet)
+		log.Printf("Using non-default subnet for VM: %s", netIf.Subnetwork)
+	}
+
 	return &compute.Instance{
 		Name:        task.VMID,
 		MachineType: machineTypeFQDN,
@@ -92,17 +106,8 @@ func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *comput
 				},
 			},
 		},
-		NetworkInterfaces: []*compute.NetworkInterface{
-			{
-				AccessConfigs: []*compute.AccessConfig{
-					{
-						Type: "ONE_TO_ONE_NAT",
-						Name: "External NAT",
-					},
-				},
-				Network: prefix + "/global/networks/default",
-			},
-		},
+		NetworkInterfaces: []*compute.NetworkInterface{&netIf},
+		Tags:              nil, // TODO: --tags zrh-jump-imports,no-ip
 		ServiceAccounts: []*compute.ServiceAccount{
 			{
 				Email: "default", // FIXME make overridable
@@ -167,7 +172,7 @@ write_files:
     Restart=no
     Environment="HOME=/home/cloudservice" "MGMT_TOKEN={{.Task.ManagementToken}}" "CVD_CFN_URL={{.ManagementURL}}" "CVD_VM_ID={{.Task.VMID}}"
     ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
-    ExecStartPre=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/status/${CVD_VM_ID}/BOOTED
+    ExecStartPre=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/status/${CVD_VM_ID}/booted
     ExecStart=/usr/bin/docker run \
         -v/var/run/docker.sock:/var/run/docker.sock \
         -v/home/cloudservice/.docker/config.json:/home/cloudservice/.docker/config.json \

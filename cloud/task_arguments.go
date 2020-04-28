@@ -12,10 +12,11 @@ type TaskArguments struct {
 	EntryPoint string
 	VMType     string
 	VMID       string // we must pass this in upon creation request ... FIXME - Relict from P*bSub times?
+	Subnet     string
 }
 
 // NewTaskArgumentsFromArgs returns a new TaskArguments based on CLI args
-func NewTaskArgumentsFromArgs(image string, command []string, entryPoint string, vmType string) *TaskArguments {
+func NewTaskArgumentsFromArgs(image string, command []string, entryPoint string, vmType string, subnet string) *TaskArguments {
 	vmID := generateVMID()
 	return &TaskArguments{
 		Image:      image,
@@ -23,6 +24,7 @@ func NewTaskArgumentsFromArgs(image string, command []string, entryPoint string,
 		EntryPoint: entryPoint,
 		VMType:     vmType,
 		VMID:       vmID,
+		Subnet:     subnet,
 	}
 }
 

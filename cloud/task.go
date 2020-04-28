@@ -27,14 +27,10 @@ type Task struct {
 const (
 	// TaskStatusCreated : initial state after creating new FireStore entry
 	TaskStatusCreated = "created"
-	// TaskStatusStarted : VM was created
-	TaskStatusStarted = "started"
+	// TaskStatusBooted : VM booted, tries to run docker command. VM sends this one via curl.
+	TaskStatusBooted = "booted"
 	// TaskStatusRunning : client optionally reports this from within container + progress / eta
 	TaskStatusRunning = "running"
-	// TaskStatusKilled : forceful `cloud-vm-docker task-vm kill <VMID>`
-	TaskStatusKilled = "killed"
-	// TaskStatusTerminatedFailure : container exited, code <> 0
-	TaskStatusTerminatedFailure = "completed-failure"
-	// TaskStatusTerminatedSuccess : container exited, code == 0
-	TaskStatusTerminatedSuccess = "completed-success"
+	// TaskStatusDone : Container has exited, VM destruction requested
+	TaskStatusDone = "done"
 )

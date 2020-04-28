@@ -30,7 +30,7 @@ var createCmd = &cobra.Command{
 		}
 		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
 			viper.GetString(settings.FlagEntryPoint), // FIXME!!! UNUSED!!!
-			g.VMType)
+			g.VMType, viper.GetString(settings.FlagSubnet))
 
 		log.Printf("Writing task to FireStore: %+v", taskArguments)
 		task := cloud.StoreNewTask(g.ProjectID, *taskArguments)
@@ -76,19 +76,20 @@ func init() {
 	flags := createCmd.Flags()
 	flags.SetInterspersed(false)
 
-	flags.StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
-	flags.StringP(settings.FlagSSHPublicKey, "s", "", "SSH public key to put on VM (default ~/.ssh/*.pub)")
-	flags.BoolP(settings.FlagNoSSH, "n", false, "disable SSH public key install [notyet]")
 	flags.BoolP(settings.FlagWait, "w", false, "wait until command completes / VM shuts down")
 	flags.BoolP(settings.FlagPrintLogs, "P", false, "print (last 512 lines of) container logs (requires --wait)")
-
-	viper.BindPFlag(settings.FlagVMType, createCmd.Flags().Lookup(settings.FlagVMType))
-	viper.BindPFlag(settings.FlagSSHPublicKey, createCmd.Flags().Lookup(settings.FlagSSHPublicKey))
-	viper.BindPFlag(settings.FlagNoSSH, createCmd.Flags().Lookup(settings.FlagNoSSH))
 	viper.BindPFlag(settings.FlagWait, createCmd.Flags().Lookup(settings.FlagWait))
 	viper.BindPFlag(settings.FlagPrintLogs, createCmd.Flags().Lookup(settings.FlagPrintLogs))
 
-	// add wait flag to wait for spin-up?
+	// shared with runCmd: -- todo: better way?
+	flags.BoolP(settings.FlagNoSSH, "n", false, "disable SSH public key install [notyet]")
+	flags.StringP(settings.FlagSSHPublicKey, "s", "", "SSH public key to put on VM (default ~/.ssh/*.pub)")
+	flags.StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
+	flags.StringP(settings.FlagSubnet, "S", "", "optional non-default subnet for VM")
+	viper.BindPFlag(settings.FlagNoSSH, createCmd.Flags().Lookup(settings.FlagNoSSH))
+	viper.BindPFlag(settings.FlagSSHPublicKey, createCmd.Flags().Lookup(settings.FlagSSHPublicKey))
+	viper.BindPFlag(settings.FlagVMType, createCmd.Flags().Lookup(settings.FlagVMType))
+	viper.BindPFlag(settings.FlagSubnet, runCmd.Flags().Lookup(settings.FlagSubnet))
 
 	vmCmd.AddCommand(createCmd)
 }

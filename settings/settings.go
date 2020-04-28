@@ -45,6 +45,8 @@ const (
 	FlagVerbose = "verbose"
 	// FlagPrintLogs en/disables printing logs after waiting for VM/Docker completion
 	FlagPrintLogs = "print-logs"
+	// FlagSubnet is used for VM creation
+	FlagSubnet = "subnet"
 
 	// FlagSSHPublicKey can be deployed on VM instance
 	FlagSSHPublicKey = "ssh-public-key"

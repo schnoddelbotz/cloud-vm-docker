@@ -155,7 +155,7 @@ func WaitForTaskDone(projectID, vmID string) (Task, error) {
 	if err != nil {
 		return task, err
 	}
-	if task.Status == "DONE" {
+	if task.Status == TaskStatusDone {
 		log.Printf("Found DONE status for task on initial FireStore load request")
 		return task, nil
 	}
@@ -192,7 +192,7 @@ func WaitForTaskDone(projectID, vmID string) (Task, error) {
 				}
 				if task.VMID == vmID {
 					log.Printf("Change received. New status: %s", task.Status)
-					if task.Status == "DONE" {
+					if task.Status == TaskStatusDone {
 						log.Printf("Done waiting. Task DockerExitCode: %d", task.DockerExitCode)
 						keepGoing = false
 					}

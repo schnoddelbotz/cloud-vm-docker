@@ -22,7 +22,7 @@ func GetLogLinkForVM(project string, GCEInstanceID uint64) string {
 
 // GetLogLinkForContainer as GetLogLinkForVM, but filtered to specific Docker container
 func GetLogLinkForContainer(project string, GCEInstanceID uint64, containerID string) string {
-	filter := fmt.Sprintf(`resource.type="gce_instance" 
+	filter := fmt.Sprintf(`resource.type="gce_instance"
 jsonPayload.container_id="%s"`, containerID)
 	baseLink := `https://console.cloud.google.com/logs/viewer?resource=gce_instance/instance_id/%d&project=%s&advancedFilter=%s`
 	return fmt.Sprintf(baseLink, GCEInstanceID, project, url.QueryEscape(filter))

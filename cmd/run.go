@@ -19,7 +19,7 @@ var runCmd = &cobra.Command{
 	Short: "run a dockerized command to be executed on a ComputeEngine VM",
 	Long: `run dockerized command on ComputeEngine VM
 Despite Usage message below, no cloud-vm-docker [flags] are supported after [COMMAND] [ARG...]`,
-	Args: cobra.MinimumNArgs(1),
+	Args:         cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		image := args[0]
@@ -29,7 +29,7 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 		}
 		g := settings.EnvironmentToGoogleSettings(false)
 		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
-			viper.GetString(settings.FlagEntryPoint), g.VMType)
+			viper.GetString(settings.FlagEntryPoint), g.VMType, viper.GetString(settings.FlagSubnet))
 		endpoint := api_client.GetEndpoint(viper.GetString(settings.FlagProject), viper.GetString(settings.FlagRegion))
 		client := api_client.NewCFNClient(endpoint, viper.GetString(settings.FlagToken))
 
@@ -66,11 +66,18 @@ func init() {
 
 	flags.BoolP(settings.FlagDetached, "d", false, "Start and directly return container ID (and quit)")
 	flags.StringP(settings.FlagToken, "t", "", "CloudVMDocker HTTP CloudFunction access token")
-	flags.StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
-
 	viper.BindPFlag(settings.FlagDetached, runCmd.Flags().Lookup(settings.FlagDetached))
 	viper.BindPFlag(settings.FlagToken, runCmd.Flags().Lookup(settings.FlagToken))
+
+	// shared with createCmd /  task-vm create:
+	flags.BoolP(settings.FlagNoSSH, "n", false, "disable SSH public key install [notyet]")
+	flags.StringP(settings.FlagSSHPublicKey, "s", "", "SSH public key to put on VM (default ~/.ssh/*.pub)")
+	flags.StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
+	flags.StringP(settings.FlagSubnet, "S", "", "optional non-default subnet for VM")
+	viper.BindPFlag(settings.FlagNoSSH, createCmd.Flags().Lookup(settings.FlagNoSSH))
+	viper.BindPFlag(settings.FlagSSHPublicKey, createCmd.Flags().Lookup(settings.FlagSSHPublicKey))
 	viper.BindPFlag(settings.FlagVMType, runCmd.Flags().Lookup(settings.FlagVMType))
+	viper.BindPFlag(settings.FlagSubnet, runCmd.Flags().Lookup(settings.FlagSubnet))
 
 	rootCmd.AddCommand(runCmd)
 }
