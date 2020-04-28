@@ -47,6 +47,8 @@ const (
 	FlagPrintLogs = "print-logs"
 	// FlagSubnet is used for VM creation
 	FlagSubnet = "subnet"
+	// FlagTags defines tags to apply to VM creation (comma-separated)
+	FlagTags = "tags"
 
 	// FlagSSHPublicKey can be deployed on VM instance
 	FlagSSHPublicKey = "ssh-public-key"

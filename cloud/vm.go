@@ -90,6 +90,11 @@ func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *comput
 		netIf.Subnetwork = fmt.Sprintf(subnetFormat, g.ProjectID, g.Region, task.TaskArguments.Subnet)
 		log.Printf("Using non-default subnet for VM: %s", netIf.Subnetwork)
 	}
+	var tags compute.Tags
+	if task.TaskArguments.Tags != "" {
+		tags.Items = strings.Split(task.TaskArguments.Tags, ",")
+		log.Printf("Adding tags: %q", tags.Items)
+	}
 
 	return &compute.Instance{
 		Name:        task.VMID,
@@ -107,7 +112,7 @@ func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *comput
 			},
 		},
 		NetworkInterfaces: []*compute.NetworkInterface{&netIf},
-		Tags:              nil, // TODO: --tags zrh-jump-imports,no-ip
+		Tags:              &tags,
 		ServiceAccounts: []*compute.ServiceAccount{
 			{
 				Email: "default", // FIXME make overridable

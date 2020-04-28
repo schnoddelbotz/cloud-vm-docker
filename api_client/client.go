@@ -54,8 +54,11 @@ func GetEndpoint(project, region string) string {
 
 // Run submits a Docker task to run in the cloud to HTTP CloudFunction endpoint
 func (c *CFNClient) Run(taskArgs cloud.TaskArguments) (cloud.Task, error) {
-	log.Printf("CFNClient endpoint: %s", c.Endpoint)
-	log.Printf("CFNClient args: %+v", taskArgs)
+	log.Printf("CFNClient/Run endpoint: %s", c.Endpoint)
+	log.Printf("CFNClient/Run image   : %s", taskArgs.Image)
+	log.Printf("CFNClient/Run command : %q", taskArgs.Command)
+	log.Printf("CFNClient/Run VM type : %s | Non-default subnet: '%s' | Tags: %s",
+		taskArgs.VMType, taskArgs.Subnet, taskArgs.Tags)
 	requestBody, err := json.Marshal(taskArgs)
 	if err != nil {
 		log.Fatalf("Error building requests JSON: %s", err)
@@ -118,9 +121,9 @@ func (c *CFNClient) executeClientRequest(method, path string, requestBody []byte
 		log.Fatalf("Client failed: %s", err)
 	}
 	if response.StatusCode != 200 {
-		log.Printf("Client got non-200 response: %d", response.StatusCode)
-		log.Printf("LOC: %s", response.Header)
+		// log.Printf("Client got non-200 response: %d", response.StatusCode)
 		// 302: redirect by google to auth page, if CFN is not deployed or not public
+		return nil, fmt.Errorf("error: Non-200 response %d from %s", response.StatusCode, url)
 	}
 	responseBody, err := ioutil.ReadAll(response.Body)
 	return responseBody, err

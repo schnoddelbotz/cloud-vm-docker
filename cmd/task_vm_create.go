@@ -20,6 +20,17 @@ var createCmd = &cobra.Command{
 	Args:         cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// https://github.com/spf13/viper/issues/233#issuecomment-479336184
+		viper.BindPFlag(settings.FlagWait, cmd.Flags().Lookup(settings.FlagWait))
+		viper.BindPFlag(settings.FlagPrintLogs, cmd.Flags().Lookup(settings.FlagPrintLogs))
+
+		// shared with runCmd:
+		viper.BindPFlag(settings.FlagNoSSH, cmd.Flags().Lookup(settings.FlagNoSSH))
+		viper.BindPFlag(settings.FlagSSHPublicKey, cmd.Flags().Lookup(settings.FlagSSHPublicKey))
+		viper.BindPFlag(settings.FlagVMType, cmd.Flags().Lookup(settings.FlagVMType))
+		viper.BindPFlag(settings.FlagSubnet, cmd.Flags().Lookup(settings.FlagSubnet))
+		viper.BindPFlag(settings.FlagTags, cmd.Flags().Lookup(settings.FlagTags))
+
 		g := settings.EnvironmentToGoogleSettings(true)
 		//e := handlers.NewEnvironment(g, false, true, true)
 
@@ -30,7 +41,7 @@ var createCmd = &cobra.Command{
 		}
 		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
 			viper.GetString(settings.FlagEntryPoint), // FIXME!!! UNUSED!!!
-			g.VMType, viper.GetString(settings.FlagSubnet))
+			g.VMType, viper.GetString(settings.FlagSubnet), viper.GetString(settings.FlagTags))
 
 		log.Printf("Writing task to FireStore: %+v", taskArguments)
 		task := cloud.StoreNewTask(g.ProjectID, *taskArguments)
@@ -78,18 +89,13 @@ func init() {
 
 	flags.BoolP(settings.FlagWait, "w", false, "wait until command completes / VM shuts down")
 	flags.BoolP(settings.FlagPrintLogs, "P", false, "print (last 512 lines of) container logs (requires --wait)")
-	viper.BindPFlag(settings.FlagWait, createCmd.Flags().Lookup(settings.FlagWait))
-	viper.BindPFlag(settings.FlagPrintLogs, createCmd.Flags().Lookup(settings.FlagPrintLogs))
 
 	// shared with runCmd: -- todo: better way?
 	flags.BoolP(settings.FlagNoSSH, "n", false, "disable SSH public key install [notyet]")
 	flags.StringP(settings.FlagSSHPublicKey, "s", "", "SSH public key to put on VM (default ~/.ssh/*.pub)")
 	flags.StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
 	flags.StringP(settings.FlagSubnet, "S", "", "optional non-default subnet for VM")
-	viper.BindPFlag(settings.FlagNoSSH, createCmd.Flags().Lookup(settings.FlagNoSSH))
-	viper.BindPFlag(settings.FlagSSHPublicKey, createCmd.Flags().Lookup(settings.FlagSSHPublicKey))
-	viper.BindPFlag(settings.FlagVMType, createCmd.Flags().Lookup(settings.FlagVMType))
-	viper.BindPFlag(settings.FlagSubnet, runCmd.Flags().Lookup(settings.FlagSubnet))
+	flags.StringP(settings.FlagTags, "T", "", "VM tags (comma-separated list of tags")
 
 	vmCmd.AddCommand(createCmd)
 }

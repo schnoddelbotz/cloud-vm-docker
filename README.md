@@ -146,6 +146,7 @@ Google Cloud general
 
 VMs
 
+- https://cloud.google.com/compute/docs/machine-types
 - https://github.com/googleapis/google-api-go-client/blob/master/examples/compute.go
 - https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
 - https://godoc.org/google.golang.org/api/compute/v1

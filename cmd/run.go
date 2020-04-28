@@ -22,6 +22,16 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 	Args:         cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// https://github.com/spf13/viper/issues/233#issuecomment-479336184
+		viper.BindPFlag(settings.FlagDetached, cmd.Flags().Lookup(settings.FlagDetached))
+		viper.BindPFlag(settings.FlagToken, cmd.Flags().Lookup(settings.FlagToken))
+		// shared with createCmd:
+		viper.BindPFlag(settings.FlagNoSSH, cmd.Flags().Lookup(settings.FlagNoSSH))
+		viper.BindPFlag(settings.FlagSSHPublicKey, cmd.Flags().Lookup(settings.FlagSSHPublicKey))
+		viper.BindPFlag(settings.FlagVMType, cmd.Flags().Lookup(settings.FlagVMType))
+		viper.BindPFlag(settings.FlagSubnet, cmd.Flags().Lookup(settings.FlagSubnet))
+		viper.BindPFlag(settings.FlagTags, cmd.Flags().Lookup(settings.FlagTags))
+
 		image := args[0]
 		var command []string
 		if len(args) > 1 {
@@ -29,7 +39,7 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 		}
 		g := settings.EnvironmentToGoogleSettings(false)
 		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
-			viper.GetString(settings.FlagEntryPoint), g.VMType, viper.GetString(settings.FlagSubnet))
+			viper.GetString(settings.FlagEntryPoint), g.VMType, viper.GetString(settings.FlagSubnet), viper.GetString(settings.FlagTags))
 		endpoint := api_client.GetEndpoint(viper.GetString(settings.FlagProject), viper.GetString(settings.FlagRegion))
 		client := api_client.NewCFNClient(endpoint, viper.GetString(settings.FlagToken))
 
@@ -66,18 +76,13 @@ func init() {
 
 	flags.BoolP(settings.FlagDetached, "d", false, "Start and directly return container ID (and quit)")
 	flags.StringP(settings.FlagToken, "t", "", "CloudVMDocker HTTP CloudFunction access token")
-	viper.BindPFlag(settings.FlagDetached, runCmd.Flags().Lookup(settings.FlagDetached))
-	viper.BindPFlag(settings.FlagToken, runCmd.Flags().Lookup(settings.FlagToken))
 
 	// shared with createCmd /  task-vm create:
 	flags.BoolP(settings.FlagNoSSH, "n", false, "disable SSH public key install [notyet]")
 	flags.StringP(settings.FlagSSHPublicKey, "s", "", "SSH public key to put on VM (default ~/.ssh/*.pub)")
 	flags.StringP(settings.FlagVMType, "v", "n1-standard-1", "VM machine type")
 	flags.StringP(settings.FlagSubnet, "S", "", "optional non-default subnet for VM")
-	viper.BindPFlag(settings.FlagNoSSH, createCmd.Flags().Lookup(settings.FlagNoSSH))
-	viper.BindPFlag(settings.FlagSSHPublicKey, createCmd.Flags().Lookup(settings.FlagSSHPublicKey))
-	viper.BindPFlag(settings.FlagVMType, runCmd.Flags().Lookup(settings.FlagVMType))
-	viper.BindPFlag(settings.FlagSubnet, runCmd.Flags().Lookup(settings.FlagSubnet))
+	flags.StringP(settings.FlagTags, "T", "", "VM tags (comma-separated list of tags")
 
 	rootCmd.AddCommand(runCmd)
 }
