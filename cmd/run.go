@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -22,6 +23,8 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 	Args:         cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		runBegin := time.Now()
+		log.Printf(`cloud-vm-docker version %s starting in "run" mode (using --token to talk to CloudFunction)`, AppVersion)
 		// https://github.com/spf13/viper/issues/233#issuecomment-479336184
 		viper.BindPFlag(settings.FlagDetached, cmd.Flags().Lookup(settings.FlagDetached))
 		viper.BindPFlag(settings.FlagToken, cmd.Flags().Lookup(settings.FlagToken))
@@ -57,6 +60,7 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 		if !viper.GetBool(settings.FlagDetached) {
 			task := client.WaitForDoneStatus(taskData.VMID)
 			log.Printf("Docker container logs: %s", cloud.GetLogLinkForContainer(g.ProjectID, instanceID, task.DockerContainerId))
+			log.Printf("Task execution took %.0f seconds", time.Now().Sub(runBegin).Seconds())
 			log.Printf("Docker container exit code: %d", task.DockerExitCode)
 			if task.DockerExitCode != 0 {
 				return fmt.Errorf("non-zero exit code from container: %d", task.DockerExitCode)
@@ -64,6 +68,7 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 			return nil
 		}
 
+		log.Printf("Task submission took %.0f seconds", time.Now().Sub(runBegin).Seconds())
 		println(taskData.VMID)
 		return nil
 	},

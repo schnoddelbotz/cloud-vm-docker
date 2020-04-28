@@ -41,7 +41,7 @@ func WaitForOperation(project, zone, operation string) {
 			log.Fatalf("Error getting operations: %s", err)
 		}
 		if result.Status == "DONE" { // This "DONE" is NOT settings.TaskStatusDone!!
-			log.Printf("FINALLY ... found DONE status after %d seconds", waited)
+			log.Printf("Found operation DONE status after %d seconds", waited)
 			return
 		}
 		if waited%10 == 0 {
@@ -178,6 +178,8 @@ write_files:
     Environment="HOME=/home/cloudservice" "MGMT_TOKEN={{.Task.ManagementToken}}" "CVD_CFN_URL={{.ManagementURL}}" "CVD_VM_ID={{.Task.VMID}}"
     ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
     ExecStartPre=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/status/${CVD_VM_ID}/booted
+    ExecStartPre=/usr/bin/docker pull {{.Task.TaskArguments.Image}} 
+    ExecStartPre=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/status/${CVD_VM_ID}/running
     ExecStart=/usr/bin/docker run \
         -v/var/run/docker.sock:/var/run/docker.sock \
         -v/home/cloudservice/.docker/config.json:/home/cloudservice/.docker/config.json \

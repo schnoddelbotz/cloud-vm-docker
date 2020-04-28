@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -20,6 +21,8 @@ var createCmd = &cobra.Command{
 	Args:         cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		googleCredsFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+		log.Printf(`cloud-vm-docker version %s starting in "low-level" mode (using gcloud SDK credentials %s)`, AppVersion, googleCredsFile)
 		// https://github.com/spf13/viper/issues/233#issuecomment-479336184
 		viper.BindPFlag(settings.FlagWait, cmd.Flags().Lookup(settings.FlagWait))
 		viper.BindPFlag(settings.FlagPrintLogs, cmd.Flags().Lookup(settings.FlagPrintLogs))

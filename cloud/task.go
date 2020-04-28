@@ -27,9 +27,9 @@ type Task struct {
 const (
 	// TaskStatusCreated : initial state after creating new FireStore entry
 	TaskStatusCreated = "created"
-	// TaskStatusBooted : VM booted, tries to run docker command. VM sends this one via curl.
+	// TaskStatusBooted : VM booted, tries to run docker pull on our image now
 	TaskStatusBooted = "booted"
-	// TaskStatusRunning : client optionally reports this from within container + progress / eta
+	// TaskStatusRunning : client has pulled image and docker command should be running now
 	TaskStatusRunning = "running"
 	// TaskStatusDone : Container has exited, VM destruction requested
 	TaskStatusDone = "done"

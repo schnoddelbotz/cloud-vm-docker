@@ -37,7 +37,7 @@ coverage: clean
 deploy_gcp: test clean
 	gcloud functions deploy CloudVMDocker --region=europe-west1 --runtime go113 \
  		--trigger-http --allow-unauthenticated --project=$(CVD_PROJECT) \
- 		--set-env-vars=CVD_PROJECT=$(CVD_PROJECT),CVD_TOKEN=$(CVD_TOKEN)
+ 		--set-env-vars=CVD_PROJECT=$(CVD_PROJECT),CVD_TOKEN=$(CVD_TOKEN),CVD_VERSION=$(VERSION)
 
 docker_image: clean
 	docker build -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .

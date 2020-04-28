@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/compute/v1"
@@ -23,10 +24,11 @@ func NewEnvironment(googleSettings settings.GoogleSettings, withFireStoreClient 
 	var dataStoreClient *firestore.Client
 	var computeService *compute.Service
 
-	eContext := context.Background()
-
+	if googleSettings.AccessToken == "" {
+		log.Fatal("NewEnvironment() FATAL: No CVD_TOKEN defined in environment. Cowardly refusing to expose service.")
+	}
 	if withFireStoreClient {
-		dataStoreClient = cloud.NewFireStoreClient(eContext, googleSettings.ProjectID)
+		dataStoreClient = cloud.NewFireStoreClient(context.Background(), googleSettings.ProjectID)
 	}
 	if withComputeService {
 		computeService, _ = cloud.NewComputeService()
@@ -34,7 +36,7 @@ func NewEnvironment(googleSettings settings.GoogleSettings, withFireStoreClient 
 
 	return &Environment{
 		GoogleSettings:  googleSettings,
-		Context:         eContext,
+		Context:         context.Background(),
 		FireStoreClient: dataStoreClient,
 		ComputeService:  computeService,
 	}

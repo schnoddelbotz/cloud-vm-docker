@@ -3,6 +3,7 @@ package cloudfunction
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/schnoddelbotz/cloud-vm-docker/handlers"
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
@@ -13,16 +14,19 @@ import (
 var runtimeEnvironment *handlers.Environment
 
 func init() {
+	// dunno how to ldflag on `gcloud functions deploy` ... so we pass version at deploy time. m(
+	version := os.Getenv("CVD_VERSION")
+
 	// gcloud / stackdriver logs have own timestamps, so drop Go's
 	log.SetFlags(0)
 
 	// import environment vars, using same defaults as CLI
 	googleSettings := settings.EnvironmentToGoogleSettings(true)
-	log.Printf("CLOUD-VM-DOCKER initialized with settings from env: %v", googleSettings)
+	log.Printf(`cloud-vm-docker version %s starting in "cloudfunction" mode with env proj=%s/region=%s/zone=%s`,
+		version, googleSettings.ProjectID, googleSettings.Region, googleSettings.Zone)
 
 	// we initialize all clients here, albeit different needs of CFNs. Solve.
 	runtimeEnvironment = handlers.NewEnvironment(googleSettings, true, true)
-	log.Printf("Initialized runtime env: %v", runtimeEnvironment)
 }
 
 // CloudVMDocker handles VMCreate, TaskStatus and TaskProgress requests
