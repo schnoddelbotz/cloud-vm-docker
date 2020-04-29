@@ -26,7 +26,6 @@ var createCmd = &cobra.Command{
 		// https://github.com/spf13/viper/issues/233#issuecomment-479336184
 		viper.BindPFlag(settings.FlagWait, cmd.Flags().Lookup(settings.FlagWait))
 		viper.BindPFlag(settings.FlagPrintLogs, cmd.Flags().Lookup(settings.FlagPrintLogs))
-
 		// shared with runCmd:
 		viper.BindPFlag(settings.FlagNoSSH, cmd.Flags().Lookup(settings.FlagNoSSH))
 		viper.BindPFlag(settings.FlagSSHPublicKey, cmd.Flags().Lookup(settings.FlagSSHPublicKey))
@@ -34,23 +33,19 @@ var createCmd = &cobra.Command{
 		viper.BindPFlag(settings.FlagSubnet, cmd.Flags().Lookup(settings.FlagSubnet))
 		viper.BindPFlag(settings.FlagTags, cmd.Flags().Lookup(settings.FlagTags))
 
-		g := settings.EnvironmentToGoogleSettings(true)
-		//e := handlers.NewEnvironment(g, false, true, true)
-
-		image := args[0]
+		g := settings.ViperToRuntimeSettings(true)
 		var command []string
 		if len(args) > 1 {
 			command = args[1:]
 		}
-		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
-			viper.GetString(settings.FlagEntryPoint), // FIXME!!! UNUSED!!!
-			g.VMType, viper.GetString(settings.FlagSubnet), viper.GetString(settings.FlagTags))
+		g.TaskArgs.Image = args[0]
+		g.TaskArgs.Command = command
+		g.TaskArgs.SSHPubKeys = cloud.GetUserSSHPublicKeys(g.TaskArgs.SSHPubKeys, g.NoSSH) ///// FIXME FIXME FIXME
 
-		log.Printf("Writing task to FireStore: %+v", taskArguments)
-		task := cloud.StoreNewTask(g.ProjectID, *taskArguments)
-		task.SSHPubKeys = cloud.GetUserSSHPublicKeys(g.SSHPublicKey, g.DisableSSH)
+		log.Printf("Writing task to FireStore: %+v", g.TaskArgs)
+		myTask := cloud.StoreNewTask(g.ProjectID, g.TaskArgs)
 
-		createOp, err := cloud.CreateVM(g, task)
+		createOp, err := cloud.CreateVM(g, myTask)
 		if err != nil {
 			return fmt.Errorf("ERROR running TaskArguments: %v", err)
 		}
@@ -59,18 +54,18 @@ var createCmd = &cobra.Command{
 		log.Println("VM creation requested successfully, waiting for create completion")
 		cloud.WaitForOperation(g.ProjectID, g.Zone, createOp.Name)
 
-		err = cloud.SetTaskInstanceId(g.ProjectID, task.VMID, createOp.TargetId)
+		err = cloud.SetTaskInstanceId(g.ProjectID, myTask.VMID, createOp.TargetId)
 		if err != nil {
 			log.Printf("ARGH!!! Could not update instanceID in FireStore: %s", err)
 		}
 
-		if viper.GetBool(settings.FlagWait) {
-			nt, err := cloud.WaitForTaskDone(g.ProjectID, task.VMID)
+		if g.Wait {
+			nt, err := cloud.WaitForTaskDone(g.ProjectID, myTask.VMID)
 			if err != nil {
 				return err
 			}
 			log.Printf("Docker container logs: %s", cloud.GetLogLinkForContainer(g.ProjectID, createOp.TargetId, nt.DockerContainerId))
-			if viper.GetBool(settings.FlagPrintLogs) {
+			if g.PrintLogs {
 				log.Printf("WAITING another 15 seconds for logs to appear in StackDriver...")
 				time.Sleep(15 * time.Second)
 				log.Printf("Logs from StackDriver:")

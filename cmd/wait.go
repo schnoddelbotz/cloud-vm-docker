@@ -15,7 +15,7 @@ var waitCmd = &cobra.Command{
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		vmID := args[0]
-		g := settings.EnvironmentToGoogleSettings(true)
+		g := settings.ViperToRuntimeSettings(true)
 		_, err := cloud.WaitForTaskDone(g.ProjectID, vmID)
 		return err
 	},

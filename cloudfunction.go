@@ -21,7 +21,7 @@ func init() {
 	log.SetFlags(0)
 
 	// import environment vars, using same defaults as CLI
-	googleSettings := settings.EnvironmentToGoogleSettings(true)
+	googleSettings := settings.ViperToRuntimeSettings(true)
 	log.Printf(`cloud-vm-docker version %s starting in "cloudfunction" mode with env proj=%s/region=%s/zone=%s`,
 		version, googleSettings.ProjectID, googleSettings.Region, googleSettings.Zone)
 

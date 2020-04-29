@@ -17,7 +17,7 @@ var logsCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		vmID := args[0]
-		g := settings.EnvironmentToGoogleSettings(true)
+		g := settings.ViperToRuntimeSettings(true)
 
 		task, err := cloud.GetTask(g.ProjectID, vmID)
 		if err != nil {

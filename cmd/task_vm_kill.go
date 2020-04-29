@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
-
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +16,7 @@ var killCmd = &cobra.Command{
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		instanceName := args[0]
-		g := settings.EnvironmentToGoogleSettings(true)
+		g := settings.ViperToRuntimeSettings(true)
 		if err := cloud.DeleteInstanceByName(g, instanceName); err != nil {
 			return err
 		}

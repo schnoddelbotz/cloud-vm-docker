@@ -35,18 +35,17 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 		viper.BindPFlag(settings.FlagSubnet, cmd.Flags().Lookup(settings.FlagSubnet))
 		viper.BindPFlag(settings.FlagTags, cmd.Flags().Lookup(settings.FlagTags))
 
-		image := args[0]
+		g := settings.ViperToRuntimeSettings(false)
 		var command []string
 		if len(args) > 1 {
 			command = args[1:]
 		}
-		g := settings.EnvironmentToGoogleSettings(false)
-		taskArguments := cloud.NewTaskArgumentsFromArgs(image, command,
-			viper.GetString(settings.FlagEntryPoint), g.VMType, viper.GetString(settings.FlagSubnet), viper.GetString(settings.FlagTags))
-		endpoint := api_client.GetEndpoint(viper.GetString(settings.FlagProject), viper.GetString(settings.FlagRegion))
-		client := api_client.NewCFNClient(endpoint, viper.GetString(settings.FlagToken))
+		g.TaskArgs.Image = args[0]
+		g.TaskArgs.Command = command
+		endpoint := api_client.GetEndpoint(g.ProjectID, g.Region)
+		client := api_client.NewCFNClient(endpoint, g.Token)
 
-		taskData, err := client.Run(*taskArguments)
+		taskData, err := client.Run(g.TaskArgs)
 		if err != nil {
 			return fmt.Errorf("ERROR running TaskArguments: %v", err)
 		}
@@ -57,7 +56,7 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 		}
 		log.Printf("VM logs: %s", cloud.GetLogLinkForVM(g.ProjectID, instanceID))
 
-		if !viper.GetBool(settings.FlagDetached) {
+		if !g.Detached {
 			task := client.WaitForDoneStatus(taskData.VMID)
 			log.Printf("Docker container logs: %s", cloud.GetLogLinkForContainer(g.ProjectID, instanceID, task.DockerContainerId))
 			log.Printf("Task execution took %.0f seconds", time.Now().Sub(runBegin).Seconds())

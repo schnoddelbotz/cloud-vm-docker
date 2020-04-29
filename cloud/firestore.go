@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"github.com/schnoddelbotz/cloud-vm-docker/task"
 	"log"
 	"strconv"
 	"strings"
@@ -18,11 +19,11 @@ import (
 // Thing below should be split into NewTask(proj, args).Store()
 
 // StoreNewTask saves a new task in FireStore DB.
-func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
+func StoreNewTask(projectID string, taskArguments task.TaskArguments) task.Task {
 	ctx := context.Background()
 	client := NewFireStoreClient(ctx, projectID)
-	doc := Task{
-		Status:          TaskStatusCreated,
+	doc := task.Task{
+		Status:          task.TaskStatusCreated,
 		TaskArguments:   taskArguments,
 		VMID:            taskArguments.VMID, // dup! also doc title now ...
 		CreatedAt:       time.Now(),
@@ -41,7 +42,7 @@ func StoreNewTask(projectID string, taskArguments TaskArguments) Task {
 func ListTasks(projectID string) {
 	ctx := context.Background() // fixme pass in
 	client := NewFireStoreClient(ctx, projectID)
-	docList := make([]Task, 0)
+	docList := make([]task.Task, 0)
 
 	// todo: add filter (-a arg), sorting, FIX CREATED OUTPUT
 	iter := client.Collection(settings.FireStoreCollection).
@@ -58,7 +59,7 @@ func ListTasks(projectID string) {
 			log.Fatalf("FireStore iterator boom: %s", err)
 		}
 
-		var task Task
+		var task task.Task
 		if err := doc.DataTo(&task); err != nil {
 			log.Printf("FireStore data error: %s", err)
 			continue
@@ -135,35 +136,35 @@ func SetTaskInstanceId(projectID, vmID string, instanceID uint64) error {
 }
 
 // GetTask tries to fetch given record from FireStore
-func GetTask(projectID, vmID string) (Task, error) {
+func GetTask(projectID, vmID string) (task.Task, error) {
 	ctx := context.Background() // fixme pass in
 	client := NewFireStoreClient(ctx, projectID)
-	var task Task
+	var myTask task.Task
 	d, err := client.Collection(settings.FireStoreCollection).Doc(vmID).Get(ctx)
 	if err != nil {
-		return Task{}, err
+		return task.Task{}, err
 	}
-	if err := d.DataTo(&task); err != nil {
+	if err := d.DataTo(&myTask); err != nil {
 		log.Fatalf("Ooops. Cannot convert FireStore data to task %s: %s", vmID, err)
 	}
-	return task, err
+	return myTask, err
 }
 
 // WaitForTaskDone should use FireStore realtime updates to be notified on updates ...
-func WaitForTaskDone(projectID, vmID string) (Task, error) {
-	task, err := GetTask(projectID, vmID)
+func WaitForTaskDone(projectID, vmID string) (task.Task, error) {
+	myTask, err := GetTask(projectID, vmID)
 	if err != nil {
-		return task, err
+		return myTask, err
 	}
-	if task.Status == TaskStatusDone {
+	if myTask.Status == task.TaskStatusDone {
 		log.Printf("Found DONE status for task on initial FireStore load request")
-		return task, nil
+		return myTask, nil
 	}
 
 	ctx := context.Background()
 	client := NewFireStoreClient(ctx, projectID)
 	col := client.Collection(settings.FireStoreCollection) //.Doc(vmID)
-	log.Printf("Waiting for task status DONE for vmID %s which is now in status %s", vmID, task.Status)
+	log.Printf("Waiting for task status DONE for vmID %s which is now in status %s", vmID, myTask.Status)
 	//firestore.LogWatchStreams = true
 	// why is this all private...???
 	// https://github.com/googleapis/google-cloud-go/blob/master/firestore/watch.go
@@ -177,7 +178,7 @@ func WaitForTaskDone(projectID, vmID string) (Task, error) {
 			if err == iterator.Done {
 				break
 			}
-			return task, err
+			return myTask, err
 		}
 
 		for _, change := range doc.Changes {
@@ -186,37 +187,37 @@ func WaitForTaskDone(projectID, vmID string) (Task, error) {
 			//case firestore.DocumentAdded:
 			// isNew := change.Doc.CreateTime.After(task.CreatedAt)
 			case firestore.DocumentModified:
-				err := change.Doc.DataTo(&task)
+				err := change.Doc.DataTo(&myTask)
 				if err != nil {
 					log.Fatalf("Cannot read task data: %e", err)
 				}
-				if task.VMID == vmID {
-					log.Printf("Change received. New status: %s", task.Status)
-					if task.Status == TaskStatusDone {
-						log.Printf("Done waiting. Task DockerExitCode: %d", task.DockerExitCode)
+				if myTask.VMID == vmID {
+					log.Printf("Change received. New status: %s", myTask.Status)
+					if myTask.Status == task.TaskStatusDone {
+						log.Printf("Done waiting. Task DockerExitCode: %d", myTask.DockerExitCode)
 						keepGoing = false
 					}
 				} else {
-					log.Printf("Ignoring change on VMID %s (which is not me! I'm %s)", task.VMID, vmID)
+					log.Printf("Ignoring change on VMID %s (which is not me! I'm %s)", myTask.VMID, vmID)
 				}
 			}
 		}
 		// log.Printf("NEXT PLEASE") // -- will be passed once for every notification received
 	}
-	if task.DockerExitCode != 0 {
-		return task, fmt.Errorf("task returned with non-zero DockerExitCode: %d", task.DockerExitCode)
+	if myTask.DockerExitCode != 0 {
+		return myTask, fmt.Errorf("task returned with non-zero DockerExitCode: %d", myTask.DockerExitCode)
 	}
-	return task, nil
+	return myTask, nil
 }
 
-func generateVMID() string {
-	b := make([]byte, 16)
-	_, err := rand.Read(b)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return fmt.Sprintf("t%x", b[0:5])
-}
+//func generateVMID() string {
+//	b := make([]byte, 16)
+//	_, err := rand.Read(b)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	return fmt.Sprintf("t%x", b[0:5])
+//}
 
 func generateManagementToken() string {
 	b := make([]byte, 16)

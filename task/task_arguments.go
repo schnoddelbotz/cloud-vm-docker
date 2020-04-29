@@ -1,7 +1,9 @@
-package cloud
+package task
 
 import (
+	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -14,10 +16,12 @@ type TaskArguments struct {
 	VMID       string // we must pass this in upon creation request ... FIXME - Relict from P*bSub times?
 	Subnet     string
 	Tags       string
+	// SSHPubKeys string holding one or more \n-separated ssh pubkeys
+	SSHPubKeys string
 }
 
 // NewTaskArgumentsFromArgs returns a new TaskArguments based on CLI args
-func NewTaskArgumentsFromArgs(image string, command []string, entryPoint, vmType, subnet, tags string) *TaskArguments {
+func NewTaskArgumentsFromArgs(image string, command []string, entryPoint, vmType, subnet, tags, sshKeys string) *TaskArguments {
 	vmID := generateVMID()
 	return &TaskArguments{
 		Image:      image,
@@ -27,6 +31,7 @@ func NewTaskArgumentsFromArgs(image string, command []string, entryPoint, vmType
 		VMID:       vmID,
 		Subnet:     subnet,
 		Tags:       tags,
+		SSHPubKeys: sshKeys,
 	}
 }
 
@@ -38,4 +43,13 @@ func NewTaskArgumentsFromBytes(data []byte) *TaskArguments {
 		log.Fatalf("Oooops, JSON task decoding error: %v", err)
 	}
 	return &task
+}
+
+func generateVMID() string {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return fmt.Sprintf("t%x", b[0:5])
 }

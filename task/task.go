@@ -1,6 +1,8 @@
-package cloud
+package task
 
-import "time"
+import (
+	"time"
+)
 
 // Task describes structure of our FireStore/FireStore documents
 type Task struct {
@@ -16,8 +18,7 @@ type Task struct {
 	ManagementToken string
 	// CreatedAt ...
 	CreatedAt time.Time
-	// SSHPubKeys string holding one or more \n-separated ssh pubkeys
-	SSHPubKeys string
+
 	// DockerExitCode from docker run command on VM
 	DockerExitCode int
 	// DockerContainerId stores container ID on VM, to enable StackDriver log filtering

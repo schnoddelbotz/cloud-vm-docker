@@ -7,33 +7,33 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+
+	"github.com/schnoddelbotz/cloud-vm-docker/task"
 )
 
-// GoogleSettings define anything Google related (project, service account, ...)
-type GoogleSettings struct {
-	ProjectID                  string
-	Zone                       string
-	Region                     string
-	VMType                     string
-	SSHPublicKey               string
-	DisableSSH                 bool
-	VMPostDockerRunTargetState string // should become: SHUTDOWN | DELETE | KEEP
-	FireStoreCollection        string
-	AccessToken                string // access protects the HTTP CFN
+// RuntimeSettings define anything Google related (project, service account, ...)
+type RuntimeSettings struct {
+	ProjectID string
+	Zone      string
+	Region    string
+	TaskArgs  task.TaskArguments
+	NoSSH     bool   // not needed to be saved -- if disabled, there are no keys.
+	Token     string // access protects the HTTP CFN
+	Detached  bool
+	Wait      bool
+	Verbose   bool
+	PrintLogs bool
 }
 
 const (
 	// FlagProject ...
 	FlagProject = "project"
-	// FlagEntryPoint ...
-	FlagEntryPoint = "entrypoint"
-	// FlagVMType ...
-	FlagVMType = "vm-type"
 	// FlagZone defines zone to run VMs in
 	FlagZone = "zone"
 	// FlagRegion defines region of CFNs
 	FlagRegion = "region"
-	// FlagDetached sets dockers -d flag
+
+	// FlagDetached sets dockers -d flag (for runCmd)
 	FlagDetached = "detached"
 	// FlagEntrypoint IS NOT USED YET
 	FlagEntrypoint = "entrypoint"
@@ -45,25 +45,28 @@ const (
 	FlagVerbose = "verbose"
 	// FlagPrintLogs en/disables printing logs after waiting for VM/Docker completion
 	FlagPrintLogs = "print-logs"
+
+	// TaskArgs
+	// FlagVMType selects VM type from https://cloud.google.com/compute/docs/machine-types
+	FlagVMType = "vm-type"
 	// FlagSubnet is used for VM creation
 	FlagSubnet = "subnet"
 	// FlagTags defines tags to apply to VM creation (comma-separated)
 	FlagTags = "tags"
+	// FlagEntryPoint NOT YET
+	FlagEntryPoint = "entrypoint"
 
 	// FlagSSHPublicKey can be deployed on VM instance
 	FlagSSHPublicKey = "ssh-public-key"
 	// FlagNoSSH disables inclusion of local user's SSH public keys in cloudInit
 	FlagNoSSH = "no-ssh"
 
-	// FireStoreCollection is the name of our firestore collection
+	// FireStoreCollection is the name of our firestore collection (static for now)
 	FireStoreCollection = "cloud-vm-docker-task"
-
-	// TopicNameTaskQueue .. tbd: option/flag
-	TopicNameTaskQueue = "cloud-vm-docker-task-queue"
 )
 
-// EnvironmentToGoogleSettings translates environment variables into a GoogleSettings struct.
-func EnvironmentToGoogleSettings(permitEmptyToken bool) GoogleSettings {
+// ViperToRuntimeSettings translates environment variables into a RuntimeSettings struct.
+func ViperToRuntimeSettings(permitEmptyToken bool) RuntimeSettings {
 	viper.AutomaticEnv()
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -81,16 +84,17 @@ func EnvironmentToGoogleSettings(permitEmptyToken bool) GoogleSettings {
 		}
 		log.Printf("Warning! Empty CVD_TOKEN -- generated random one for use: %s", accessToken)
 	}
-	s := GoogleSettings{
-		ProjectID:                  viper.GetString(FlagProject),
-		Zone:                       viper.GetString(FlagZone),
-		Region:                     viper.GetString(FlagRegion),
-		VMType:                     viper.GetString(FlagVMType),
-		AccessToken:                accessToken,
-		SSHPublicKey:               viper.GetString(FlagSSHPublicKey),
-		DisableSSH:                 viper.GetBool(FlagNoSSH),
-		VMPostDockerRunTargetState: "",                  // notyet
-		FireStoreCollection:        FireStoreCollection, // fixme: static for now
+	s := RuntimeSettings{
+		ProjectID: viper.GetString(FlagProject),
+		Zone:      viper.GetString(FlagZone),
+		Region:    viper.GetString(FlagRegion),
+		Token:     accessToken,
+		NoSSH:     viper.GetBool(FlagNoSSH),
+		Detached:  viper.GetBool(FlagDetached),
+		Wait:      viper.GetBool(FlagWait),
+		Verbose:   viper.GetBool(FlagVerbose),
+		PrintLogs: viper.GetBool(FlagPrintLogs),
+		TaskArgs:  *task.NewTaskArgumentsFromArgs("", nil, viper.GetString(FlagEntryPoint), viper.GetString(FlagVMType), viper.GetString(FlagSubnet), viper.GetString(FlagTags), viper.GetString(FlagSSHPublicKey)),
 	}
 	return s
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/schnoddelbotz/cloud-vm-docker/task"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -64,7 +65,7 @@ func CloudVMDocker(w http.ResponseWriter, r *http.Request, env *Environment) {
 }
 
 func authenticateAdminRequest(w http.ResponseWriter, clientToken string, env *Environment) bool {
-	if clientToken != env.GoogleSettings.AccessToken {
+	if clientToken != env.GoogleSettings.Token {
 		log.Printf("Permission denied for admin request - bad token: %s", clientToken)
 		http.Error(w, "FIXME This should be a JSON 401", 401)
 		return false
@@ -112,7 +113,7 @@ func handleRun(w http.ResponseWriter, r *http.Request, env *Environment, vmID st
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	taskArguments := cloud.NewTaskArgumentsFromBytes(requestBody)
+	taskArguments := task.NewTaskArgumentsFromBytes(requestBody)
 	log.Printf("Writing task to FireStore: %+v", taskArguments)
 	task := cloud.StoreNewTask(env.GoogleSettings.ProjectID, *taskArguments)
 	createOp, err := cloud.CreateVM(env.GoogleSettings, task)
@@ -167,7 +168,7 @@ func handleDelete(w http.ResponseWriter, env *Environment, vmID string, exitCode
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	err = cloud.UpdateTaskStatus(env.GoogleSettings.ProjectID, vmID, cloud.TaskStatusDone, exitCode)
+	err = cloud.UpdateTaskStatus(env.GoogleSettings.ProjectID, vmID, task.TaskStatusDone, exitCode)
 	if err != nil {
 		log.Printf("Error on DeleteInstanceByName(..., %s): Unable to update FireStore after successful VM deletion %s", vmID, err)
 		http.Error(w, err.Error(), 500)

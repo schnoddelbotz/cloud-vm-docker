@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/schnoddelbotz/cloud-vm-docker/task"
 	"log"
 	"strings"
 	"text/template"
@@ -15,7 +16,7 @@ import (
 )
 
 // CreateVM spins up a ComputeEngine VM instance ...
-func CreateVM(g settings.GoogleSettings, task Task) (*compute.Operation, error) {
+func CreateVM(g settings.RuntimeSettings, task task.Task) (*compute.Operation, error) {
 	log.Printf("Creating VM named %s of type %s in zone %s in project %s", task.VMID, task.TaskArguments.VMType, g.Zone, g.ProjectID)
 	computeService, ctx := NewComputeService()
 
@@ -63,14 +64,14 @@ func NewComputeService() (*compute.Service, context.Context) {
 }
 
 // DeleteInstanceByName ...
-func DeleteInstanceByName(g settings.GoogleSettings, name string) error {
+func DeleteInstanceByName(g settings.RuntimeSettings, name string) error {
 	log.Printf("DeleteInstanceByName called for: %s", name)
 	computeClient, ctx := NewComputeService() // duh...
 	_, err := computeClient.Instances.Delete(g.ProjectID, g.Zone, name).Context(ctx).Do()
 	return err
 }
 
-func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *compute.Instance {
+func buildInstanceInsertionRequest(g settings.RuntimeSettings, task task.Task) *compute.Instance {
 	// instanceName, machineTypeFQDN, prefix, sshKeys, cloudInit string
 	trueString := "true"
 	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s", g.Zone, task.TaskArguments.VMType)
@@ -130,7 +131,7 @@ func buildInstanceInsertionRequest(g settings.GoogleSettings, task Task) *comput
 			Items: []*compute.MetadataItems{
 				{
 					Key:   "ssh-keys",
-					Value: &task.SSHPubKeys,
+					Value: &task.TaskArguments.SSHPubKeys,
 				},
 				{
 					Key:   "google-logging-enabled",
@@ -156,7 +157,7 @@ func getCOSImageLink() string {
 	return image.SelfLink
 }
 
-func buildCloudInit(g settings.GoogleSettings, task Task) string {
+func buildCloudInit(g settings.RuntimeSettings, myTask task.Task) string {
 	const tpl = `#cloud-config
 users:
 - name: cloudservice
@@ -213,20 +214,20 @@ runcmd:
 	// But then [Service] must run as root.
 
 	type TemplateData struct {
-		Google        settings.GoogleSettings
-		Task          Task
+		Google        settings.RuntimeSettings
+		Task          task.Task
 		QuotedCommand string
 		ManagementURL string
 	}
 
 	quotedCommand := ""
-	if len(task.TaskArguments.Command) > 0 {
-		// cloud-vm-docker task-vm create busybox sh -c 'sleep 3600'
+	if len(myTask.TaskArguments.Command) > 0 {
+		// cloud-vm-docker myTask-vm create busybox sh -c 'sleep 3600'
 		// --> busybox "sh" "-c" "sleep 3600"
-		quotedCommand = strings.Trim(fmt.Sprintf("%q", task.TaskArguments.Command), "[]")
+		quotedCommand = strings.Trim(fmt.Sprintf("%q", myTask.TaskArguments.Command), "[]")
 	}
 	managementURL := fmt.Sprintf("https://%s-%s.cloudfunctions.net/CloudVMDocker", g.Region, g.ProjectID)
-	templateData := TemplateData{Google: g, Task: task, QuotedCommand: quotedCommand, ManagementURL: managementURL}
+	templateData := TemplateData{Google: g, Task: myTask, QuotedCommand: quotedCommand, ManagementURL: managementURL}
 	t := template.Must(template.New("cloud-init").Parse(tpl))
 
 	var result bytes.Buffer
