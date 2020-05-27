@@ -14,7 +14,7 @@ import (
 // RuntimeSettings define anything Google related (project, service account, ...)
 type RuntimeSettings struct {
 	ProjectID string
-	Zone      string
+	//Zone      string
 	Region    string
 	TaskArgs  task.TaskArguments
 	NoSSH     bool   // not needed to be saved -- if disabled, there are no keys.
@@ -86,7 +86,7 @@ func ViperToRuntimeSettings(permitEmptyToken bool) RuntimeSettings {
 	}
 	s := RuntimeSettings{
 		ProjectID: viper.GetString(FlagProject),
-		Zone:      viper.GetString(FlagZone),
+		//Zone:      viper.GetString(FlagZone),
 		Region:    viper.GetString(FlagRegion),
 		Token:     accessToken,
 		NoSSH:     viper.GetBool(FlagNoSSH),
@@ -94,7 +94,9 @@ func ViperToRuntimeSettings(permitEmptyToken bool) RuntimeSettings {
 		Wait:      viper.GetBool(FlagWait),
 		Verbose:   viper.GetBool(FlagVerbose),
 		PrintLogs: viper.GetBool(FlagPrintLogs),
-		TaskArgs:  *task.NewTaskArgumentsFromArgs("", nil, viper.GetString(FlagEntryPoint), viper.GetString(FlagVMType), viper.GetString(FlagSubnet), viper.GetString(FlagTags), viper.GetString(FlagSSHPublicKey)),
+		TaskArgs: *task.NewTaskArgumentsFromArgs("", nil, viper.GetString(FlagEntryPoint),
+			viper.GetString(FlagVMType), viper.GetString(FlagZone), viper.GetString(FlagSubnet),
+			viper.GetString(FlagTags), viper.GetString(FlagSSHPublicKey)),
 	}
 	return s
 }

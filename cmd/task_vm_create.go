@@ -52,7 +52,7 @@ var createCmd = &cobra.Command{
 
 		log.Printf("VM logs: %s", cloud.GetLogLinkForVM(g.ProjectID, createOp.TargetId))
 		log.Println("VM creation requested successfully, waiting for create completion")
-		cloud.WaitForOperation(g.ProjectID, g.Zone, createOp.Name)
+		cloud.WaitForOperation(g.ProjectID, g.TaskArgs.Zone, createOp.Name)
 
 		err = cloud.SetTaskInstanceId(g.ProjectID, myTask.VMID, createOp.TargetId)
 		if err != nil {

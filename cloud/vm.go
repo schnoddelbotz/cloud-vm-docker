@@ -17,11 +17,11 @@ import (
 
 // CreateVM spins up a ComputeEngine VM instance ...
 func CreateVM(g settings.RuntimeSettings, task task.Task) (*compute.Operation, error) {
-	log.Printf("Creating VM named %s of type %s in zone %s in project %s", task.VMID, task.TaskArguments.VMType, g.Zone, g.ProjectID)
+	log.Printf("Creating VM named %s of type %s in zone %s in project %s", task.VMID, task.TaskArguments.VMType, task.TaskArguments.Zone, g.ProjectID)
 	computeService, ctx := NewComputeService()
 
 	rb := buildInstanceInsertionRequest(g, task)
-	resp, err := computeService.Instances.Insert(g.ProjectID, g.Zone, rb).Context(ctx).Do()
+	resp, err := computeService.Instances.Insert(g.ProjectID, task.TaskArguments.Zone, rb).Context(ctx).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -64,17 +64,17 @@ func NewComputeService() (*compute.Service, context.Context) {
 }
 
 // DeleteInstanceByName ...
-func DeleteInstanceByName(g settings.RuntimeSettings, name string) error {
-	log.Printf("DeleteInstanceByName called for: %s", name)
+func DeleteInstanceByName(g settings.RuntimeSettings, name string, zone string) error {
+	log.Printf("DeleteInstanceByName called for: %s in %s", name, zone)
 	computeClient, ctx := NewComputeService() // duh...
-	_, err := computeClient.Instances.Delete(g.ProjectID, g.Zone, name).Context(ctx).Do()
+	_, err := computeClient.Instances.Delete(g.ProjectID, zone, name).Context(ctx).Do()
 	return err
 }
 
 func buildInstanceInsertionRequest(g settings.RuntimeSettings, task task.Task) *compute.Instance {
 	// instanceName, machineTypeFQDN, prefix, sshKeys, cloudInit string
 	trueString := "true"
-	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s", g.Zone, task.TaskArguments.VMType)
+	machineTypeFQDN := fmt.Sprintf("zones/%s/machineTypes/%s", task.TaskArguments.Zone, task.TaskArguments.VMType)
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + g.ProjectID
 	cloudInit := buildCloudInit(g, task)
 	var netIf compute.NetworkInterface
@@ -176,7 +176,7 @@ write_files:
     [Service]
     User=cloudservice
     Restart=no
-    Environment="HOME=/home/cloudservice" "MGMT_TOKEN={{.Task.ManagementToken}}" "CVD_CFN_URL={{.ManagementURL}}" "CVD_VM_ID={{.Task.VMID}}"
+    Environment="HOME=/home/cloudservice" "MGMT_TOKEN={{.Task.ManagementToken}}" "CVD_CFN_URL={{.ManagementURL}}" "CVD_VM_ID={{.Task.VMID}}" "VM_ZONE={{.Task.TaskArguments.Zone}}"
     ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
     ExecStartPre=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/status/${CVD_VM_ID}/booted
     ExecStartPre=/usr/bin/docker pull {{.Task.TaskArguments.Image}} 
@@ -191,7 +191,7 @@ write_files:
     ExecStop=-/usr/bin/docker stop cloud-vm-docker
     ExecStopPost=/bin/sh -c "/usr/bin/docker inspect cloud-vm-docker --format='{''{'.Id'}''}' > /tmp/cid && /usr/bin/curl -s -d@/tmp/cid -H'X-Authorization: ${MGMT_TOKEN}' ${CVD_CFN_URL}/container/${CVD_VM_ID}/set"
     ExecStopPost=/usr/bin/sleep 15
-    ExecStopPost=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/delete/${CVD_VM_ID}/${EXIT_STATUS}
+    ExecStopPost=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" "${CVD_CFN_URL}/delete/${CVD_VM_ID}/${EXIT_STATUS}?zone=${VM_ZONE}"
 
 runcmd:
 - usermod -aG docker cloudservice

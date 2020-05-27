@@ -22,8 +22,8 @@ func init() {
 
 	// import environment vars, using same defaults as CLI
 	googleSettings := settings.ViperToRuntimeSettings(true)
-	log.Printf(`cloud-vm-docker version %s starting in "cloudfunction" mode with env proj=%s/region=%s/zone=%s`,
-		version, googleSettings.ProjectID, googleSettings.Region, googleSettings.Zone)
+	log.Printf(`cloud-vm-docker version %s starting in "cloudfunction" mode with env proj=%s/cfn-region=%s`,
+		version, googleSettings.ProjectID, googleSettings.Region)
 
 	// we initialize all clients here, albeit different needs of CFNs. Solve.
 	runtimeEnvironment = handlers.NewEnvironment(googleSettings, true, true)

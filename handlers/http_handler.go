@@ -23,7 +23,7 @@ func CloudVMDocker(w http.ResponseWriter, r *http.Request, env *Environment) {
 	//  MGM-TOKEN GET /status (cloud-vm-docker ps)
 	//   VM-TOKEN GET /delete/t23c7ac6d4f/0  --- semantically wrong to use GET, but easier to curl... m(
 	// FIXMEEEEE! Separete /vm (vm management token) and /manage (cfn admin token)
-	action, vmID, targetValue, err := parseRequestURI(r.RequestURI)
+	action, vmID, targetValue, err := parseRequestURI(r.URL.Path)
 	if err != nil {
 		log.Printf("Invalid request URI: %s", r.RequestURI)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -50,7 +50,12 @@ func CloudVMDocker(w http.ResponseWriter, r *http.Request, env *Environment) {
 		if !authenticateVMRequest(w, clientToken, env, vmID) {
 			return
 		}
-		handleDelete(w, env, vmID, targetValue)
+		zones, ok := r.URL.Query()["zone"]
+		if !ok || len(zones[0]) < 1 {
+			log.Printf("delete request was missing zone URL parameter")
+			return
+		}
+		handleDelete(w, env, vmID, targetValue, zones[0])
 	case "container":
 		if !authenticateVMRequest(w, clientToken, env, vmID) {
 			return
@@ -124,7 +129,7 @@ func handleRun(w http.ResponseWriter, r *http.Request, env *Environment, vmID st
 	}
 
 	log.Println("VM creation requested successfully, waiting for op...")
-	cloud.WaitForOperation(env.GoogleSettings.ProjectID, env.GoogleSettings.Zone, createOp.Name)
+	cloud.WaitForOperation(env.GoogleSettings.ProjectID, taskArguments.Zone, createOp.Name)
 
 	log.Printf("Saving GCE InstanceID to FireStore: %s => %d", vmID, createOp.TargetId)
 	err = cloud.SetTaskInstanceId(env.GoogleSettings.ProjectID, vmID, createOp.TargetId)
@@ -154,9 +159,9 @@ func handleStatusGet(w http.ResponseWriter, env *Environment, vmID string) {
 	w.Write(responseBody)
 }
 
-func handleDelete(w http.ResponseWriter, env *Environment, vmID string, exitCodeString string) {
-	log.Printf("Handling DELETE request form VMID %s with exitCode %s", vmID, exitCodeString)
-	err := cloud.DeleteInstanceByName(env.GoogleSettings, vmID)
+func handleDelete(w http.ResponseWriter, env *Environment, vmID string, exitCodeString string, zone string) {
+	log.Printf("Handling DELETE request form VMID %s (in %s) with exitCode %s", vmID, zone, exitCodeString)
+	err := cloud.DeleteInstanceByName(env.GoogleSettings, vmID, zone)
 	if err != nil {
 		log.Printf("Error on DeleteInstanceByName(..., %s): %s", vmID, err)
 		http.Error(w, err.Error(), 500)

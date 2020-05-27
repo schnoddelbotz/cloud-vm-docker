@@ -17,7 +17,7 @@ var killCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		instanceName := args[0]
 		g := settings.ViperToRuntimeSettings(true)
-		if err := cloud.DeleteInstanceByName(g, instanceName); err != nil {
+		if err := cloud.DeleteInstanceByName(g, instanceName, g.TaskArgs.Zone); err != nil {
 			return err
 		}
 		// FIXME! The public Delete function should also update FireStore!

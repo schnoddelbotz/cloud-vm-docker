@@ -13,6 +13,7 @@ type TaskArguments struct {
 	Command    []string
 	EntryPoint string
 	VMType     string
+	Zone       string
 	VMID       string // we must pass this in upon creation request ... FIXME - Relict from P*bSub times?
 	Subnet     string
 	Tags       string
@@ -21,13 +22,14 @@ type TaskArguments struct {
 }
 
 // NewTaskArgumentsFromArgs returns a new TaskArguments based on CLI args
-func NewTaskArgumentsFromArgs(image string, command []string, entryPoint, vmType, subnet, tags, sshKeys string) *TaskArguments {
+func NewTaskArgumentsFromArgs(image string, command []string, entryPoint, vmType, zone, subnet, tags, sshKeys string) *TaskArguments {
 	vmID := generateVMID()
 	return &TaskArguments{
 		Image:      image,
 		Command:    command,
 		EntryPoint: entryPoint,
 		VMType:     vmType,
+		Zone:       zone,
 		VMID:       vmID,
 		Subnet:     subnet,
 		Tags:       tags,
