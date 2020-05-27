@@ -30,7 +30,7 @@ func CreateVM(g settings.RuntimeSettings, task task.Task) (*compute.Operation, e
 }
 
 // WaitForOperation guess what
-func WaitForOperation(project, zone, operation string) {
+func WaitForOperation(project, zone, operation string) error {
 	log.Printf("Waiting for operation %s in zone %s project %s", operation, zone, project)
 	computeService, _ := NewComputeService()
 	// todo: add max / timeout
@@ -42,8 +42,12 @@ func WaitForOperation(project, zone, operation string) {
 			log.Fatalf("Error getting operations: %s", err)
 		}
 		if result.Status == "DONE" { // This "DONE" is NOT settings.TaskStatusDone!!
-			log.Printf("Found operation DONE status after %d seconds", waited)
-			return
+			if result.Error == nil {
+				log.Printf("Found SUCCESSFUL operation DONE status after %d seconds", waited)
+				return nil
+			}
+			log.Printf("Found operation DONE status WITH ERROR after %d seconds", waited)
+			return fmt.Errorf("VM creation failed with: %s", result.Error.Errors[0].Message)
 		}
 		if waited%10 == 0 {
 			log.Printf("Already waited %d seconds ...", waited)

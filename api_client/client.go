@@ -121,11 +121,11 @@ func (c *CFNClient) executeClientRequest(method, path string, requestBody []byte
 	if err != nil {
 		log.Fatalf("Client failed: %s", err)
 	}
+	responseBody, err := ioutil.ReadAll(response.Body)
 	if response.StatusCode != 200 {
 		// log.Printf("Client got non-200 response: %d", response.StatusCode)
 		// 302: redirect by google to auth page, if CFN is not deployed or not public
-		return nil, fmt.Errorf("error: Non-200 response %d from %s", response.StatusCode, url)
+		return nil, fmt.Errorf("ERROR: Non-200 response %d from %s : %s", response.StatusCode, url, responseBody)
 	}
-	responseBody, err := ioutil.ReadAll(response.Body)
 	return responseBody, err
 }

@@ -129,7 +129,12 @@ func handleRun(w http.ResponseWriter, r *http.Request, env *Environment, vmID st
 	}
 
 	log.Println("VM creation requested successfully, waiting for op...")
-	cloud.WaitForOperation(env.GoogleSettings.ProjectID, taskArguments.Zone, createOp.Name)
+	err = cloud.WaitForOperation(env.GoogleSettings.ProjectID, taskArguments.Zone, createOp.Name)
+	if err != nil {
+		log.Printf("ERROR waiting for VM creation done status: %s", err.Error())
+		http.Error(w, err.Error(), 500)
+		return
+	}
 
 	log.Printf("Saving GCE InstanceID to FireStore: %s => %d", vmID, createOp.TargetId)
 	err = cloud.SetTaskInstanceId(env.GoogleSettings.ProjectID, vmID, createOp.TargetId)
