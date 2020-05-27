@@ -60,6 +60,7 @@ func (c *CFNClient) Run(taskArgs task.TaskArguments) (task.Task, error) {
 	log.Printf("CFNClient/Run command : %q", taskArgs.Command)
 	log.Printf("CFNClient/Run VM type : %s | Non-default subnet: '%s' | Tags: %s",
 		taskArgs.VMType, taskArgs.Subnet, taskArgs.Tags)
+	var myTask task.Task
 	requestBody, err := json.Marshal(taskArgs)
 	if err != nil {
 		log.Fatalf("Error building requests JSON: %s", err)
@@ -67,15 +68,14 @@ func (c *CFNClient) Run(taskArgs task.TaskArguments) (task.Task, error) {
 	requestPath := fmt.Sprintf("run/%s/%s", taskArgs.VMID, taskArgs.VMType)
 	responseBody, err := c.executeClientRequest("POST", requestPath, requestBody)
 	if err != nil {
-		log.Fatalf("Error submitting request: %s", err)
+		return myTask, err
 	}
-	var task task.Task
-	err = json.Unmarshal(responseBody, &task)
+	err = json.Unmarshal(responseBody, &myTask)
 	if err != nil {
 		log.Printf("Unmarshalling response failed: %s", err)
 	}
-	log.Printf("SUCCESS: Created task vm: %s (instanceID %s)", task.VMID, task.InstanceID)
-	return task, nil
+	log.Printf("SUCCESS: Created task vm: %s (instanceID %s)", myTask.VMID, myTask.InstanceID)
+	return myTask, nil
 }
 
 func (c *CFNClient) WaitForDoneStatus(vmID string) task.Task {

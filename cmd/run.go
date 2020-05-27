@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -12,6 +13,7 @@ import (
 	"github.com/schnoddelbotz/cloud-vm-docker/api_client"
 	"github.com/schnoddelbotz/cloud-vm-docker/cloud"
 	"github.com/schnoddelbotz/cloud-vm-docker/settings"
+	"github.com/schnoddelbotz/cloud-vm-docker/task"
 )
 
 // runCmd represents the run command
@@ -45,10 +47,26 @@ Despite Usage message below, no cloud-vm-docker [flags] are supported after [COM
 		endpoint := api_client.GetEndpoint(g.ProjectID, g.Region)
 		client := api_client.NewCFNClient(endpoint, g.Token)
 
-		taskData, err := client.Run(g.TaskArgs)
-		if err != nil {
-			return fmt.Errorf("ERROR running TaskArguments: %v", err)
+		// start try-multiple-zones-on-quota-issues-hack
+		zones := strings.Split(g.TaskArgs.Zone, ",")
+		var taskData task.Task
+		var cerr error
+		for _, zone := range zones {
+			log.Printf("Trying to create VM in zone %s ...", zone)
+			g.TaskArgs.Zone = zone
+			taskData, cerr = client.Run(g.TaskArgs)
+			if cerr != nil {
+				log.Printf("ERROR running TaskArguments in zone %s: %v", zone, cerr)
+			} else {
+				log.Printf("Successfully created VM in zone %s", zone)
+				break
+			}
 		}
+		if cerr != nil {
+			log.Fatalf("ERROR: Unable to create VM in any of given zone(s) %v", zones)
+		}
+		// end start try-multiple-zones-on-quota-issues-hack
+		// TODO... cleanup ... and make available for `task-vm create` as well ...
 
 		instanceID, err := strconv.ParseUint(taskData.InstanceID, 10, 64)
 		if err != nil {
