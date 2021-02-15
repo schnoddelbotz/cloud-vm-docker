@@ -15,14 +15,15 @@ import (
 type RuntimeSettings struct {
 	ProjectID string
 	//Zone      string
-	Region    string
-	TaskArgs  task.TaskArguments
-	NoSSH     bool   // not needed to be saved -- if disabled, there are no keys.
-	Token     string // access protects the HTTP CFN
-	Detached  bool
-	Wait      bool
-	Verbose   bool
-	PrintLogs bool
+	Region         string
+	TaskArgs       task.TaskArguments
+	NoSSH          bool   // not needed to be saved -- if disabled, there are no keys.
+	Token          string // access protects the HTTP CFN
+	ServiceAccount string
+	Detached       bool
+	Wait           bool
+	Verbose        bool
+	PrintLogs      bool
 }
 
 const (
@@ -54,7 +55,8 @@ const (
 	// FlagTags defines tags to apply to VM creation (comma-separated)
 	FlagTags = "tags"
 	// FlagEntryPoint NOT YET
-	FlagEntryPoint = "entrypoint"
+	FlagEntryPoint     = "entrypoint"
+	FlagServiceAccount = "service-account"
 
 	// FlagSSHPublicKey can be deployed on VM instance
 	FlagSSHPublicKey = "ssh-public-key"
@@ -87,13 +89,14 @@ func ViperToRuntimeSettings(permitEmptyToken bool) RuntimeSettings {
 	s := RuntimeSettings{
 		ProjectID: viper.GetString(FlagProject),
 		//Zone:      viper.GetString(FlagZone),
-		Region:    viper.GetString(FlagRegion),
-		Token:     accessToken,
-		NoSSH:     viper.GetBool(FlagNoSSH),
-		Detached:  viper.GetBool(FlagDetached),
-		Wait:      viper.GetBool(FlagWait),
-		Verbose:   viper.GetBool(FlagVerbose),
-		PrintLogs: viper.GetBool(FlagPrintLogs),
+		Region:         viper.GetString(FlagRegion),
+		Token:          accessToken,
+		ServiceAccount: viper.GetString(FlagServiceAccount),
+		NoSSH:          viper.GetBool(FlagNoSSH),
+		Detached:       viper.GetBool(FlagDetached),
+		Wait:           viper.GetBool(FlagWait),
+		Verbose:        viper.GetBool(FlagVerbose),
+		PrintLogs:      viper.GetBool(FlagPrintLogs),
 		TaskArgs: *task.NewTaskArgumentsFromArgs("", nil, viper.GetString(FlagEntryPoint),
 			viper.GetString(FlagVMType), viper.GetString(FlagZone), viper.GetString(FlagSubnet),
 			viper.GetString(FlagTags), viper.GetString(FlagSSHPublicKey)),

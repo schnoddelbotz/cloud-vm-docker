@@ -120,14 +120,8 @@ func buildInstanceInsertionRequest(g settings.RuntimeSettings, task task.Task) *
 		Tags:              &tags,
 		ServiceAccounts: []*compute.ServiceAccount{
 			{
-				Email: "default", // FIXME make overridable
+				Email: g.ServiceAccount,
 				Scopes: []string{
-					compute.DevstorageFullControlScope,
-					compute.ComputeScope,
-					"https://www.googleapis.com/auth/logging.write",
-					"https://www.googleapis.com/auth/monitoring.write",
-					"https://www.googleapis.com/auth/bigquery",
-					"https://www.googleapis.com/auth/service.management.readonly",
 					"https://www.googleapis.com/auth/cloud-platform",
 				},
 			},
