@@ -128,6 +128,7 @@ func buildInstanceInsertionRequest(g settings.RuntimeSettings, task task.Task) *
 					"https://www.googleapis.com/auth/monitoring.write",
 					"https://www.googleapis.com/auth/bigquery",
 					"https://www.googleapis.com/auth/service.management.readonly",
+					"https://www.googleapis.com/auth/cloud-platform",
 				},
 			},
 		},
@@ -183,7 +184,7 @@ write_files:
     Environment="HOME=/home/cloudservice" "MGMT_TOKEN={{.Task.ManagementToken}}" "CVD_CFN_URL={{.ManagementURL}}" "CVD_VM_ID={{.Task.VMID}}" "VM_ZONE={{.Task.TaskArguments.Zone}}"
     ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
     ExecStartPre=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/status/${CVD_VM_ID}/booted
-    ExecStartPre=/usr/bin/docker pull {{.Task.TaskArguments.Image}} 
+    ExecStartPre=/usr/bin/docker pull {{.Task.TaskArguments.Image}}
     ExecStartPre=/usr/bin/curl -s -XPOST -H"content-length: 0" -H"X-Authorization: ${MGMT_TOKEN}" ${CVD_CFN_URL}/status/${CVD_VM_ID}/running
     ExecStart=/usr/bin/docker run \
         -v/var/run/docker.sock:/var/run/docker.sock \
